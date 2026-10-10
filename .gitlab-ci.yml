@@ -1,0 +1,169 @@
+# Store Review Rehearsal pipeline.
+# test -> build -> review -> package -> deploy
+# The Duo flow "store-review" starts pipelines with STORE_REVIEW_MODE=review (first pass) or resume (after the handoff).
+
+stages: [test, build, review, package, deploy]
+
+variables:
+  FLUTTER_IMAGE: ghcr.io/cirruslabs/flutter:3.41.9
+  PYTHON_IMAGE: python:3.12-slim
+  ENGINE_DIR: tools/store_review
+
+default:
+  interruptible: true
+
+.engine:
+  image: $PYTHON_IMAGE
+  before_script:
+    - pip install --quiet uv==0.11.3
+    - cd $ENGINE_DIR && uv sync --quiet && cd $CI_PROJECT_DIR
+  cache:
+    key: uv-$CI_COMMIT_REF_SLUG
+    paths: [$ENGINE_DIR/.venv]
+
+.flutter:
+  image: $FLUTTER_IMAGE
+  before_script:
+    - sh tools/ci/firebase_options.sh
+    - flutter pub get
+  cache:
+    key: pub-$CI_COMMIT_REF_SLUG
+    paths: [.pub-cache]
+  variables:
+    PUB_CACHE: $CI_PROJECT_DIR/.pub-cache
+
+engine:test:
+  extends: .engine
+  stage: test
+  script:
+    - cd $ENGINE_DIR && uv run pytest -q --junitxml=$CI_PROJECT_DIR/engine-junit.xml
+  artifacts:
+    when: always
+    reports:
+      junit: engine-junit.xml
+
+flutter:test:
+  extends: .flutter
+  stage: test
+  script:
+    - flutter analyze --no-fatal-infos
+    - flutter test
+
+build:web:
+  extends: .flutter
+  stage: build
+  needs: [flutter:test]
+  script:
+    - flutter build web --release
+  artifacts:
+    paths: [build/web]
+    expire_in: 1 week
+
+build:android:
+  extends: .flutter
+  stage: build
+  needs: [flutter:test]
+  rules:
+    - if: $ANDROID_KEYSTORE_BASE64
+  script:
+    - sh tools/ci/android_signing.sh
+    - flutter build appbundle --release
+  artifacts:
+    paths: [build/app/outputs/bundle/release/app-release.aab]
+    expire_in: 1 week
+
+review:benchmark:
+  extends: .engine
+  stage: review
+  needs: [engine:test]
+  script:
+    - cd $ENGINE_DIR && uv run store-review benchmark --out $CI_PROJECT_DIR/benchmark.json
+  artifacts:
+    paths: [benchmark.json]
+
+review:scan:
+  extends: .engine
+  stage: review
+  needs: [engine:test, review:benchmark]
+  script:
+    - cd $ENGINE_DIR
+    - uv run store-review scan --app $CI_PROJECT_DIR --out $CI_PROJECT_DIR/findings.json
+        --report $CI_PROJECT_DIR/review-report.md --benchmark $CI_PROJECT_DIR/benchmark.json
+    - uv run store-review handoff --findings $CI_PROJECT_DIR/findings.json | tee $CI_PROJECT_DIR/handoff.md
+  artifacts:
+    paths: [findings.json, review-report.md, handoff.md]
+    expose_as: store review
+    expire_in: 30 days
+
+review:resume:
+  extends: .engine
+  stage: review
+  needs: [engine:test]
+  rules:
+    - if: $STORE_REVIEW_MODE == "resume"
+  script:
+    # Inputs to check come from the last review:scan on the default branch (the run that posted the handoff).
+    - 'curl --fail --silent --header "JOB-TOKEN: $CI_JOB_TOKEN"
+        "$CI_API_V4_URL/projects/$CI_PROJECT_ID/jobs/artifacts/$CI_DEFAULT_BRANCH/raw/findings.json?job=review:scan"
+        --output handoff-findings.json'
+    - cd $ENGINE_DIR && uv run store-review validate-inputs --findings $CI_PROJECT_DIR/handoff-findings.json --app $CI_PROJECT_DIR
+  before_script:
+    - apt-get update -qq && apt-get install -qq -y curl > /dev/null
+    - pip install --quiet uv==0.11.3
+    - cd $ENGINE_DIR && uv sync --quiet && cd $CI_PROJECT_DIR
+
+package:stores:
+  extends: .engine
+  stage: package
+  needs: [review:scan]
+  rules:
+    - if: $CI_COMMIT_TAG
+    - if: $STORE_REVIEW_MODE == "resume"
+  script:
+    - cd $ENGINE_DIR
+    - status=0
+    - for store in ios android; do
+        uv run store-review package --store $store --findings $CI_PROJECT_DIR/findings.json --app $CI_PROJECT_DIR
+          --out $CI_PROJECT_DIR/dist/store-package || status=$?;
+      done
+    - exit $status
+  allow_failure:
+    exit_codes: [4]
+  artifacts:
+    paths: [dist/store-package]
+    expire_in: 90 days
+
+release:gitlab:
+  stage: package
+  image: registry.gitlab.com/gitlab-org/release-cli:latest
+  needs: [package:stores, review:scan]
+  rules:
+    - if: $CI_COMMIT_TAG
+  script:
+    - echo "Creating release $CI_COMMIT_TAG"
+  release:
+    tag_name: $CI_COMMIT_TAG
+    name: "Store review $CI_COMMIT_TAG"
+    description: review-report.md
+    assets:
+      links:
+        - name: Store packages
+          url: "$CI_PROJECT_URL/-/jobs/artifacts/$CI_COMMIT_TAG/browse/dist/store-package?job=package:stores"
+        - name: findings.json
+          url: "$CI_PROJECT_URL/-/jobs/artifacts/$CI_COMMIT_TAG/raw/findings.json?job=review:scan"
+
+deploy:cloudrun:
+  stage: deploy
+  image: google/cloud-sdk:slim
+  needs: [build:web]
+  rules:
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH && $GCP_PROJECT_ID
+      when: manual
+  id_tokens:
+    GCP_ID_TOKEN:
+      aud: $GCP_WIF_AUDIENCE
+  script:
+    - sh deploy/cloudrun/deploy.sh
+  environment:
+    name: production
+    url: $CLOUD_RUN_URL
