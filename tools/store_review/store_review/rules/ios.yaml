@@ -1,0 +1,95 @@
+# Apple App Store rule pack. Data, not code: checks read these tables.
+store: ios
+rules:
+  IOS-USAGE-MISSING:
+    layer: automated
+    guideline: "Apple 5.1.1 Data Collection and Storage (purpose strings)"
+    severity: blocker
+    weight: 0
+    fix: {kind: auto, recipe: "Add {key} to ios/Runner/Info.plist with a sentence that says why the app needs it"}
+    source_url: https://developer.apple.com/app-store/review/guidelines/#data-collection-and-storage
+    verified: 2026-10-10
+  IOS-USAGE-PLACEHOLDER:
+    layer: automated
+    guideline: "Apple 5.1.1 Data Collection and Storage (purpose strings)"
+    severity: warning
+    weight: 5
+    fix: {kind: manual, recipe: "Rewrite {key} to explain the concrete user benefit"}
+    source_url: https://developer.apple.com/app-store/review/guidelines/#data-collection-and-storage
+    verified: 2026-10-10
+  IOS-PRIVACY-MANIFEST:
+    layer: automated
+    guideline: "Apple upload check ITMS-91053 (privacy manifest, required reason APIs)"
+    severity: warning
+    weight: 4
+    fix: {kind: auto, recipe: "Add ios/Runner/PrivacyInfo.xcprivacy declaring {category} with reason {reason}"}
+    source_url: https://developer.apple.com/documentation/bundleresources/describing-use-of-required-reason-api
+    verified: 2026-10-10
+  IOS-PRIVACY-REASON:
+    layer: automated
+    guideline: "Apple upload check ITMS-91053 (privacy manifest, required reason APIs)"
+    severity: blocker
+    weight: 0
+    fix: {kind: manual, recipe: "Replace {code} with an approved reason for {category}"}
+    source_url: https://developer.apple.com/documentation/bundleresources/describing-use-of-required-reason-api
+    verified: 2026-10-10
+  IOS-ENCRYPTION-FLAG:
+    layer: automated
+    guideline: "App Store Connect export compliance"
+    severity: warning
+    weight: 2
+    fix: {kind: handoff, recipe: "Answer: does the app use encryption beyond HTTPS and the OS? Then set ITSAppUsesNonExemptEncryption"}
+    source_url: https://developer.apple.com/documentation/security/complying-with-encryption-export-regulations
+    verified: 2026-10-10
+  IOS-ATS-ARBITRARY:
+    layer: automated
+    guideline: "Apple 2.5 Software Requirements (App Transport Security)"
+    severity: warning
+    weight: 4
+    fix: {kind: manual, recipe: "Remove NSAllowsArbitraryLoads or scope exceptions to specific domains"}
+    source_url: https://developer.apple.com/documentation/security/preventing-insecure-network-connections
+    verified: 2026-10-10
+  IOS-SIWA:
+    layer: automated
+    guideline: "Apple 4.8 Login Services"
+    severity: warning
+    weight: 6
+    fix: {kind: manual, recipe: "Offer Sign in with Apple, or another login that meets 4.8, next to {plugin}"}
+    source_url: https://developer.apple.com/app-store/review/guidelines/#login-services
+    verified: 2026-10-10
+
+# pubspec dependency -> Info.plist keys the plugin needs at runtime
+permission_plugins:
+  image_picker: [NSCameraUsageDescription, NSPhotoLibraryUsageDescription]
+  camera: [NSCameraUsageDescription, NSMicrophoneUsageDescription]
+  mobile_scanner: [NSCameraUsageDescription]
+  geolocator: [NSLocationWhenInUseUsageDescription]
+  location: [NSLocationWhenInUseUsageDescription]
+  record: [NSMicrophoneUsageDescription]
+  speech_to_text: [NSSpeechRecognitionUsageDescription, NSMicrophoneUsageDescription]
+  flutter_contacts: [NSContactsUsageDescription]
+  local_auth: [NSFaceIDUsageDescription]
+  photo_manager: [NSPhotoLibraryUsageDescription]
+  flutter_blue_plus: [NSBluetoothAlwaysUsageDescription]
+  app_tracking_transparency: [NSUserTrackingUsageDescription]
+
+# pubspec dependency -> required-reason API category it touches
+required_reason_plugins:
+  shared_preferences: NSPrivacyAccessedAPICategoryUserDefaults
+  shared_preferences_foundation: NSPrivacyAccessedAPICategoryUserDefaults
+
+# Approved reason codes per category. Copied from Apple's "Describing use of required reason API".
+# Re-check against that page before the demo; codes change rarely.
+approved_reasons:
+  NSPrivacyAccessedAPICategoryUserDefaults: [CA92.1, 1C8F.1, C56D.1, AC6B.1]
+  NSPrivacyAccessedAPICategoryFileTimestamp: [DDA9.1, C617.1, 3B52.1, 0A2A.1]
+  NSPrivacyAccessedAPICategorySystemBootTime: [35F9.1, 8FFB.1, 3D61.1]
+  NSPrivacyAccessedAPICategoryDiskSpace: [85F4.1, E174.1, 7D9E.1, B728.1]
+  NSPrivacyAccessedAPICategoryActiveKeyboards: [3EC4.1, 54BD.1]
+default_reason:
+  NSPrivacyAccessedAPICategoryUserDefaults: CA92.1
+
+social_login_plugins: [google_sign_in, flutter_facebook_auth, firebase_ui_oauth_google, firebase_ui_oauth_facebook, firebase_ui_oauth_twitter, twitter_login]
+apple_login_plugins: [sign_in_with_apple, firebase_ui_oauth_apple]
+placeholder_pattern: "(?i)(todo|tbd|placeholder|lorem|description here)"
+min_usage_length: 12
