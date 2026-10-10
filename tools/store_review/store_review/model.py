@@ -53,7 +53,21 @@ def _require_choice(d: dict, key: str, choices: tuple[str, ...]) -> None:
         raise SchemaError(f"{key} must be one of {choices}, got {d[key]!r}")
 
 
+def _number(d: dict, key: str) -> float:
+    value = d[key]
+    if isinstance(value, bool) or not isinstance(value, (int, float)):
+        raise SchemaError(f"{key} must be a number, got {value!r}")
+    return value
+
+
 def finding_from_dict(d: dict) -> Finding:
+    try:
+        return _finding_from_dict(d)
+    except (KeyError, TypeError, AttributeError) as err:
+        raise SchemaError(f"malformed finding {d.get('id', '?') if isinstance(d, dict) else d!r}: {err!r}") from err
+
+
+def _finding_from_dict(d: dict) -> Finding:
     missing = [k for k in REQUIRED_KEYS if k not in d]
     if missing:
         raise SchemaError(f"missing keys: {', '.join(missing)}")
@@ -61,11 +75,12 @@ def finding_from_dict(d: dict) -> Finding:
     _require_choice(d, "layer", LAYERS)
     _require_choice(d, "severity", SEVERITIES)
     _require_choice(d, "source", SOURCES)
-    if not 0 <= float(d["confidence"]) <= 1:
-        raise SchemaError(f"confidence must be within 0..1, got {d['confidence']!r}")
-    if float(d["weight"]) < 0:
-        raise SchemaError(f"weight must be >= 0, got {d['weight']!r}")
-    if not d["evidence"]:
+    confidence, weight = _number(d, "confidence"), _number(d, "weight")
+    if not 0 <= confidence <= 1:
+        raise SchemaError(f"confidence must be within 0..1, got {confidence!r}")
+    if weight < 0:
+        raise SchemaError(f"weight must be >= 0, got {weight!r}")
+    if not isinstance(d["evidence"], list) or not d["evidence"]:
         raise SchemaError("evidence must list at least one item")
     evidence = tuple(Evidence(e["path"], e.get("line"), e["detail"]) for e in d["evidence"])
     fix = d["fix"]
@@ -77,9 +92,9 @@ def finding_from_dict(d: dict) -> Finding:
         guideline=d["guideline"],
         title=d["title"],
         severity=d["severity"],
-        weight=d["weight"],
+        weight=weight,
         source=d["source"],
-        confidence=d["confidence"],
+        confidence=confidence,
         evidence=evidence,
         fix=Fix(fix["kind"], fix["recipe"]),
     )

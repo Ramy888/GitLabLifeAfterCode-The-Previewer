@@ -58,12 +58,15 @@ def load_findings(doc: dict) -> list[Finding]:
 
 
 def merge_llm(doc: dict, llm_doc: dict) -> dict:
-    findings = load_findings(doc)
-    for d in llm_doc.get("findings", []):
-        f = finding_from_dict(d)
+    """Add reviewer-agent findings. Re-merging the same IDs replaces them, so retries never double-count."""
+    if not isinstance(llm_doc, dict) or not isinstance(llm_doc.get("findings", []), list):
+        raise SchemaError("llm file must be {'findings': [...]}")
+    incoming = [finding_from_dict(d) for d in llm_doc.get("findings", [])]
+    for f in incoming:
         if f.source != "llm":
             raise SchemaError(f"{f.id}: merged findings must have source 'llm'")
-        findings.append(f)
+    replaced = {f.id for f in incoming}
+    findings = [f for f in load_findings(doc) if not (f.source == "llm" and f.id in replaced)] + incoming
     return build_document(doc["app"], findings, doc.get("benchmark"))
 
 

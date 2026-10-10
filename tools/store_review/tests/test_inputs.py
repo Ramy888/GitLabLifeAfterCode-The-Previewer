@@ -94,3 +94,12 @@ def test_cli_validate_inputs_without_findings_file(make_app, monkeypatch, capsys
     assert "STORE_REVIEW_DEMO_LOGIN" in capsys.readouterr().out
     monkeypatch.setenv("STORE_REVIEW_DEMO_LOGIN", "u:p")
     assert main(["validate-inputs", "--app", str(app)]) == 0
+
+
+def test_skip_ci_variables_for_flow_runtime(make_app, monkeypatch, capsys):
+    auth = "name: demo\nversion: 1.0.0\ndependencies:\n  firebase_auth: ^5.0.0\n"
+    app = make_app({"pubspec.yaml": auth, "store/listing.yaml": LISTING})
+    monkeypatch.delenv("STORE_REVIEW_DEMO_LOGIN", raising=False)
+    monkeypatch.setattr("store_review.inputs.http_status", ok_fetch)
+    assert main(["validate-inputs", "--app", str(app), "--skip-ci-variables"]) == 0
+    assert "checked by the release pipeline" in capsys.readouterr().out

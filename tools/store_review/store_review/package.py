@@ -22,7 +22,7 @@ CONSOLE_STEPS = {
     ],
     "android": [
         "Open Play Console > your app > Test and release > create a new release.",
-        "Upload the AAB from this GitLab Release and paste release-notes.en.md (and Arabic) into release notes.",
+        "Upload the AAB linked from this GitLab Release (job build:android) and paste release-notes.en.md (and Arabic) into release notes.",
         "Store listing: copy name, short description and description from metadata.json.",
         f"App content > App access: add the demo account from the masked CI/CD variable {DEMO_LOGIN_VARIABLE}.",
         "App content > Data safety: answer from privacy-answers.json and add the account deletion URL from metadata.json.",

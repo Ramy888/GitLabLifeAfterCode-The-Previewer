@@ -51,3 +51,19 @@ def test_missing_required_key_rejected():
     del d["guideline"]
     with pytest.raises(SchemaError, match="guideline"):
         finding_from_dict(d)
+
+
+@pytest.mark.parametrize("field,value", [("weight", "5"), ("confidence", "0.5"), ("weight", True), ("confidence", None)])
+def test_non_numeric_weight_or_confidence_rejected(field, value):
+    with pytest.raises(SchemaError, match=field):
+        finding_from_dict(valid_dict(**{field: value}))
+
+
+@pytest.mark.parametrize("override", [
+    {"evidence": [{"line": 1, "detail": "x"}]},
+    {"fix": {"kind": "auto"}},
+    {"evidence": "not-a-list"},
+])
+def test_malformed_nested_values_raise_schema_error(override):
+    with pytest.raises(SchemaError):
+        finding_from_dict(valid_dict(**override))

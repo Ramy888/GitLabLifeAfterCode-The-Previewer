@@ -117,3 +117,20 @@ def test_merge_rejects_non_llm_source(app, tmp_path, monkeypatch):
     llm = tmp_path / "llm.json"
     llm.write_text(json.dumps({"findings": [llm_finding(source="deterministic")]}))
     assert main(["merge", "--findings", str(out), "--llm", str(llm)]) == 2
+
+
+def test_merge_is_idempotent(app, tmp_path, monkeypatch):
+    out, before = scan(app, tmp_path, monkeypatch, env={"STORE_REVIEW_DEMO_LOGIN": "x"})
+    llm = tmp_path / "llm.json"
+    llm.write_text(json.dumps({"findings": [llm_finding()]}))
+    for _ in range(2):
+        assert main(["merge", "--findings", str(out), "--llm", str(llm)]) == 0
+    after = json.loads(out.read_text())
+    assert [f["id"] for f in after["findings"]].count("LLM-4.2") == 1
+
+
+def test_merge_bad_json_returns_schema_exit(app, tmp_path, monkeypatch):
+    out, _ = scan(app, tmp_path, monkeypatch)
+    llm = tmp_path / "llm.json"
+    llm.write_text("{not json")
+    assert main(["merge", "--findings", str(out), "--llm", str(llm)]) == 2

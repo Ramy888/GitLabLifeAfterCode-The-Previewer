@@ -5,6 +5,10 @@
 set -eu
 : "${GCP_PROJECT_ID:?}" "${GCP_REGION:?}" "${GCP_WIF_PROVIDER:?}" "${GCP_SERVICE_ACCOUNT:?}" "${GCP_ID_TOKEN:?}"
 SERVICE="${CLOUD_RUN_SERVICE:-time-tracker-web}"
+if [ -f build/web/.firebase-options-stub ]; then
+  echo "Refusing to deploy: build/web was built with the stub Firebase config. Set FIREBASE_OPTIONS_DART." >&2
+  exit 1
+fi
 tmp="$(mktemp -d)"
 trap 'rm -rf "$tmp" deploy/cloudrun/web' EXIT
 
@@ -15,6 +19,7 @@ gcloud auth login --cred-file="$tmp/cred.json" --quiet
 
 rm -rf deploy/cloudrun/web
 cp -R build/web deploy/cloudrun/web
+rm -f deploy/cloudrun/web/.firebase-options-stub
 gcloud run deploy "$SERVICE" --source deploy/cloudrun --project "$GCP_PROJECT_ID" --region "$GCP_REGION" \
   --allow-unauthenticated --port 8080 --quiet
 gcloud run services describe "$SERVICE" --project "$GCP_PROJECT_ID" --region "$GCP_REGION" --format 'value(status.url)'

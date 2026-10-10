@@ -1,0 +1,2 @@
+# gcloud uses .gitignore when this file is absent, and .gitignore excludes web/. Upload everything here.
+.gcloudignore

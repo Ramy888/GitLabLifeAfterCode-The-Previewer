@@ -84,7 +84,7 @@ prompts:
           uv run --directory tools/store_review store-review merge --findings ../../findings.json --llm ../../findings.llm.ios.json
           uv run --directory tools/store_review store-review merge --findings ../../findings.json --llm ../../findings.llm.android.json
           uv run --directory tools/store_review store-review handoff --findings ../../findings.json --mention @<your username>
-          uv run --directory tools/store_review store-review validate-inputs --app ../..
+          uv run --directory tools/store_review store-review validate-inputs --app ../.. --skip-ci-variables
         findings.json is the source of truth. Readiness scores come only from the engine; never invent a number.
 
         Decide the mode from the goal and the issue:
@@ -99,7 +99,8 @@ prompts:
            store/review_notes.yaml under "answers" and any URLs into store/listing.yaml. If the human answered the
            encryption question, also set ITSAppUsesNonExemptEncryption in ios/Runner/Info.plist (true for yes,
            false for no). Do all of this on a new branch named
-           store-review/<version from pubspec.yaml>. Run validate-inputs. If it exits 3, post its output as a short
+           store-review/<version from pubspec.yaml>. Run validate-inputs with --skip-ci-variables (this session
+           cannot see CI/CD variables; the release MR pipeline checks STORE_REVIEW_DEMO_LOGIN). If it exits 3, post its output as a short
            note listing only what is still missing, and stop. If it passes, commit, open a merge request titled
            "Store release <version>: ready to submit", and post a note linking it. Its pipeline rebuilds the
            findings and the per-store packages; merging it is the human's approval of the outcome.
@@ -162,7 +163,7 @@ prompts:
     prompt_template:
       system: |
         You fix review findings whose fix.kind is "auto" in findings.json. For each one:
-        create a branch store-review/fix-<finding id lowercased>, apply the recipe with the smallest change, commit,
+        create a branch store-review-fix/<finding id lowercased>, apply the recipe with the smallest change, commit,
         and open a merge request titled "<finding id>: <title>" whose description quotes the guideline and the evidence.
         One finding per merge request. Known recipes:
         - AND-TARGETSDK: set targetSdk to the required value in android/app/build.gradle.

@@ -6,6 +6,7 @@ set -eu
 out=lib/firebase_options.dart
 if [ -n "${FIREBASE_OPTIONS_DART:-}" ]; then
   printf '%s' "$FIREBASE_OPTIONS_DART" | base64 -d > "$out"
+  rm -f .firebase-options-stub
   echo "firebase_options.dart: decoded from CI/CD variable"
   exit 0
 fi
@@ -22,4 +23,5 @@ class DefaultFirebaseOptions {
       );
 }
 DART
+touch .firebase-options-stub
 echo "firebase_options.dart: stub (set FIREBASE_OPTIONS_DART for a real build)"

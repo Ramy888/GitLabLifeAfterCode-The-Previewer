@@ -47,7 +47,7 @@ def cmd_scan(args: argparse.Namespace) -> int:
 def cmd_merge(args: argparse.Namespace) -> int:
     try:
         doc = merge_llm(_read_json(args.findings), _read_json(args.llm))
-    except SchemaError as err:
+    except (SchemaError, json.JSONDecodeError) as err:
         print(f"merge rejected: {err}", file=sys.stderr)
         return EXIT_SCHEMA
     _write_json(args.findings, doc)
@@ -63,9 +63,14 @@ def cmd_handoff(args: argparse.Namespace) -> int:
 def cmd_validate_inputs(args: argparse.Namespace) -> int:
     snap = load_snapshot(args.app)
     items = _read_json(args.findings).get("inputs_required", []) if args.findings else inputs.required_inputs(snap)
+    if args.skip_ci_variables:
+        # Duo flow sessions do not see project CI/CD variables; the release pipeline (review:inputs) checks them.
+        items = [i for i in items if i["kind"] != "ci_variable"]
     problems = inputs.validate_inputs(items, snap, inputs.http_status)
     if not problems:
         print("All inputs are in place. Resuming the review.")
+        if args.skip_ci_variables:
+            print("CI/CD variables are checked by the release pipeline.")
         return 0
     print("### Still missing")
     print()
@@ -124,6 +129,8 @@ def build_parser() -> argparse.ArgumentParser:
     p = sub.add_parser("validate-inputs", help="Check the human's inputs before resuming")
     p.add_argument("--findings", help="findings.json from the run that posted the handoff (default: derive from the app)")
     p.add_argument("--app", default=".")
+    p.add_argument("--skip-ci-variables", action="store_true",
+                   help="Do not check CI/CD variables (use inside a Duo flow session, which cannot see them)")
     p.set_defaults(func=cmd_validate_inputs)
 
     p = sub.add_parser("package", help="Write the ready-to-submit package for one store")

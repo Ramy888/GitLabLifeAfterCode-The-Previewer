@@ -64,6 +64,8 @@ build:web:
   needs: [flutter:test]
   script:
     - flutter build web --release
+    # deploy.sh refuses a build made with the stub Firebase config.
+    - if [ -f .firebase-options-stub ]; then touch build/web/.firebase-options-stub; fi
   artifacts:
     paths: [build/web]
     expire_in: 1 week
@@ -79,7 +81,7 @@ build:android:
     - flutter build appbundle --release
   artifacts:
     paths: [build/app/outputs/bundle/release/app-release.aab]
-    expire_in: 1 week
+    expire_in: 90 days
 
 review:benchmark:
   extends: .engine
@@ -109,7 +111,7 @@ review:inputs:
   stage: review
   needs: [engine:test]
   rules:
-    - if: $CI_MERGE_REQUEST_SOURCE_BRANCH_NAME =~ /^store-review\//
+    - if: $CI_MERGE_REQUEST_SOURCE_BRANCH_NAME =~ /^store-review\/\d/
     - if: $CI_COMMIT_TAG
   script:
     - cd $ENGINE_DIR && uv run store-review validate-inputs --app $CI_PROJECT_DIR
@@ -119,16 +121,20 @@ package:stores:
   stage: package
   needs: [review:scan, review:inputs]
   rules:
-    - if: $CI_MERGE_REQUEST_SOURCE_BRANCH_NAME =~ /^store-review\//
+    - if: $CI_MERGE_REQUEST_SOURCE_BRANCH_NAME =~ /^store-review\/\d/
     - if: $CI_COMMIT_TAG
   script:
     - cd $ENGINE_DIR
-    - status=0
+    # Exit 4 (a store still blocked) is allowed; any other failure must fail the job whatever the store order.
+    - blocked=0; broken=0
     - for store in ios android; do
+        code=0;
         uv run store-review package --store $store --findings $CI_PROJECT_DIR/findings.json --app $CI_PROJECT_DIR
-          --out $CI_PROJECT_DIR/dist/store-package || status=$?;
+          --out $CI_PROJECT_DIR/dist/store-package || code=$?;
+        if [ $code -eq 4 ]; then blocked=1; elif [ $code -ne 0 ]; then broken=1; fi;
       done
-    - exit $status
+    - if [ $broken -eq 1 ]; then exit 1; fi
+    - if [ $blocked -eq 1 ]; then exit 4; fi
   allow_failure:
     exit_codes: [4]
   artifacts:
@@ -139,7 +145,11 @@ package:stores:
 release:gitlab:
   stage: package
   image: registry.gitlab.com/gitlab-org/release-cli:latest
-  needs: [package:stores, review:scan]
+  needs:
+    - package:stores
+    - review:scan
+    - job: build:android
+      optional: true
   rules:
     - if: $CI_COMMIT_TAG
   script:
@@ -154,6 +164,8 @@ release:gitlab:
           url: "$CI_PROJECT_URL/-/jobs/artifacts/$CI_COMMIT_TAG/browse/dist/store-package?job=package:stores"
         - name: findings.json
           url: "$CI_PROJECT_URL/-/jobs/artifacts/$CI_COMMIT_TAG/raw/findings.json?job=review:scan"
+        - name: Android app bundle (AAB)
+          url: "$CI_PROJECT_URL/-/jobs/artifacts/$CI_COMMIT_TAG/raw/build/app/outputs/bundle/release/app-release.aab?job=build:android"
 
 deploy:cloudrun:
   stage: deploy

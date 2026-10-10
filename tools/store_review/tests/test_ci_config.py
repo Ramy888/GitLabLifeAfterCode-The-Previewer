@@ -24,6 +24,7 @@ def test_every_job_stage_is_declared_and_needs_exist():
     for name, job in jobs.items():
         assert job.get("stage") in stages, name
         for need in job.get("needs", []):
+            need = need["job"] if isinstance(need, dict) else need
             assert need in jobs, f"{name} needs missing job {need}"
 
 
@@ -48,3 +49,24 @@ def test_release_branches_validate_inputs_then_package():
         assert any("store-review" in r for r in rules) and any("CI_COMMIT_TAG" in r for r in rules)
     assert "review:inputs" in cfg["package:stores"]["needs"]
     assert any("merge_request_event" in r["if"] for r in cfg["workflow"]["rules"])
+
+
+def test_fixer_branches_do_not_trigger_release_jobs():
+    import re
+    cfg = config()
+    for job in ("review:inputs", "package:stores"):
+        pattern = next(r["if"] for r in cfg[job]["rules"] if "store-review" in r["if"])
+        regex = pattern.split("=~", 1)[1].strip().strip("/").replace("\\/", "/")
+        assert re.search(regex, "store-review/2.1.0")
+        assert not re.search(regex, "store-review-fix/and-targetsdk")
+        assert not re.search(regex, "store-review/fix-and-targetsdk")
+
+
+def test_package_loop_distinguishes_blocked_from_broken():
+    script = " ".join(config()["package:stores"]["script"])
+    assert "broken" in script and "exit 1" in script and "exit 4" in script
+
+
+def test_release_links_the_aab():
+    links = config()["release:gitlab"]["release"]["assets"]["links"]
+    assert any("app-release.aab" in link["url"] for link in links)

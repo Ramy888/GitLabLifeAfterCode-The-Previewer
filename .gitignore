@@ -112,3 +112,4 @@ benchmark.json
 dist/store-package/
 android/key.properties
 android/upload-keystore.jks
+.firebase-options-stub
