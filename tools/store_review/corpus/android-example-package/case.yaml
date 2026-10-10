@@ -1,0 +1,4 @@
+rejection: 'Play: the package name com.example.* is restricted.'
+expected:
+- AND-EXAMPLE-PACKAGE
+env: {}

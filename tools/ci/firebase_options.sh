@@ -1,8 +1,12 @@
 #!/usr/bin/env sh
 # Write lib/firebase_options.dart for CI. The real file is gitignored.
-# With FIREBASE_OPTIONS_DART (base64, masked CI/CD variable) set, decode it; otherwise write a stub that compiles
+# With FIREBASE_OPTIONS_DART (base64, masked CI/CD variable) set, decode it (and GOOGLE_SERVICES_JSON for Android); otherwise write a stub that compiles
 # for tests and analysis but cannot talk to Firebase.
 set -eu
+if [ -n "${GOOGLE_SERVICES_JSON:-}" ]; then
+  printf '%s' "$GOOGLE_SERVICES_JSON" | base64 -d > android/app/google-services.json
+  echo "google-services.json: decoded from CI/CD variable"
+fi
 out=lib/firebase_options.dart
 if [ -n "${FIREBASE_OPTIONS_DART:-}" ]; then
   printf '%s' "$FIREBASE_OPTIONS_DART" | base64 -d > "$out"

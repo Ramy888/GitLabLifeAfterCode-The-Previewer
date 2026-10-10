@@ -1,4 +1,4 @@
-package com.example.starter_architecture_flutter_firebase
+package com.RDPT.thepreviewer
 
 import io.flutter.embedding.android.FlutterActivity
 

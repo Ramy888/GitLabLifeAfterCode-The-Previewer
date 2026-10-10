@@ -1,0 +1,11 @@
+android {
+  defaultConfig {
+    applicationId = "com.example.demo"
+    targetSdk = 36
+  }
+  buildTypes {
+    release {
+      signingConfig = signingConfigs.release
+    }
+  }
+}

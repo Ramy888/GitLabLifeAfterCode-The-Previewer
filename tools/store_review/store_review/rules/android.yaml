@@ -58,6 +58,14 @@ rules:
     fix: {kind: manual, recipe: "Create an upload key, load it from CI/CD variables, and point the release buildType at it in {path}"}
     source_url: https://developer.android.com/studio/publish/app-signing
     verified: 2026-10-10
+  AND-EXAMPLE-PACKAGE:
+    layer: automated
+    guideline: "Play: package names starting with com.example are restricted"
+    severity: blocker
+    weight: 0
+    fix: {kind: manual, recipe: "Choose your own reverse-domain applicationId in {path} and register it in Firebase"}
+    source_url: https://developer.android.com/build/configure-app-module#set-application-id
+    verified: 2026-10-10
 
 required_target_sdk: 36
 required_target_sdk_since: 2026-08-31

@@ -69,6 +69,7 @@ Rule packs live in `tools/store_review/store_review/rules/*.yaml`. Each rule cit
 | `IOS-SIWA` | Apple | A third-party login without Sign in with Apple (4.8) |
 | `AND-TARGETSDK` | Google Play | `targetSdk` below the current requirement (36 since 2026-08-31) |
 | `AND-DEBUG-SIGNING` | Google Play | The release build is signed with the debug key |
+| `AND-EXAMPLE-PACKAGE` | Google Play | The applicationId starts with the restricted `com.example` prefix |
 | `AND-DELETION-URL` | Google Play | Accounts exist but there is no web link for account deletion |
 | `AND-DATASAFETY-PERM` | Google Play | A dangerous permission is missing from the Data safety answers |
 | `AND-CLEARTEXT` | Google Play | Cleartext HTTP allowed for every host |

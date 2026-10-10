@@ -1,5 +1,6 @@
 android {
   defaultConfig {
+    applicationId = "com.acme.demo"
     targetSdk = 34
   }
   buildTypes {

@@ -181,3 +181,15 @@ def test_release_signed_with_release_key(make_app):
 def test_debug_build_type_may_use_debug_key(make_app):
     gradle = "android {\n  buildTypes {\n    debug {\n      signingConfig = signingConfigs.debug\n    }\n  }\n}\n"
     assert "AND-DEBUG-SIGNING" not in ids(make_app({"android/app/build.gradle": gradle, MANIFEST: manifest()}))
+
+
+# AND-EXAMPLE-PACKAGE
+def test_example_package_rejected(make_app):
+    gradle = 'android {\n  defaultConfig {\n    applicationId = "com.example.myapp"\n    targetSdk = 36\n  }\n}\n'
+    (f,) = [f for f in run(make_app({"android/app/build.gradle": gradle, MANIFEST: manifest()})) if f.id == "AND-EXAMPLE-PACKAGE"]
+    assert f.severity == "blocker" and f.evidence[0].line == 3
+
+
+def test_real_package_passes(make_app):
+    gradle = 'android {\n  defaultConfig {\n    applicationId = "com.RDPT.thepreviewer"\n    targetSdk = 36\n  }\n}\n'
+    assert "AND-EXAMPLE-PACKAGE" not in ids(make_app({"android/app/build.gradle": gradle, MANIFEST: manifest()}))

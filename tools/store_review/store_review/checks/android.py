@@ -43,6 +43,19 @@ def debug_signing(snap: AppSnapshot, pack: dict) -> Iterator[Hit]:
                 in_release = False
 
 
+@check("AND-EXAMPLE-PACKAGE")
+def example_package(snap: AppSnapshot, pack: dict) -> Iterator[Hit]:
+    if snap.gradle is None:
+        return
+    path, text = snap.gradle
+    for n, line in enumerate(text.splitlines(), start=1):
+        m = re.search(r'applicationId\s*=?\s*["\'](com\.example\.[^"\']+)', line)
+        if m:
+            yield Hit(f"applicationId {m.group(1)} uses the restricted com.example prefix",
+                      [Evidence(path, n, line.strip())], {"path": path})
+            return
+
+
 @check("AND-DELETION-URL")
 def deletion_url(snap: AppSnapshot, pack: dict) -> Iterator[Hit]:
     if _android_present(snap) and has_accounts(snap) and not snap.store["listing"].get("account_deletion_url"):
