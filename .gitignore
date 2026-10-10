@@ -113,3 +113,6 @@ dist/store-package/
 android/key.properties
 android/upload-keystore.jks
 .firebase-options-stub
+
+# Local credentials (never commit)
+.env
