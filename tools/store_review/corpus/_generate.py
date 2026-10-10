@@ -36,13 +36,15 @@ def xcprivacy(category, code):
         f"<key>NSPrivacyAccessedAPITypeReasons</key><array><string>{code}</string></array></dict></array>\n"))
 
 
-def app(deps=(), plist_body=ENC, sdk=36, perms=(), app_attrs="", app_body="", listing=None, dart=None,
+def app(deps=(), plist_body=ENC, sdk=36, signing="release", perms=(), app_attrs="", app_body="", listing=None, dart=None,
         xcp=None, data_safety=None, review_notes=None):
     dep_lines = "".join(f"  {d}: any\n" for d in deps)
     files = {
         "pubspec.yaml": f"name: demo\nversion: 1.0.0\ndependencies:\n  flutter:\n    sdk: flutter\n{dep_lines}",
         "ios/Runner/Info.plist": PLIST.format(body=plist_body),
-        "android/app/build.gradle": f"android {{\n  defaultConfig {{\n    targetSdk = {sdk}\n  }}\n}}\n",
+        "android/app/build.gradle": (f"android {{\n  defaultConfig {{\n    targetSdk = {sdk}\n  }}\n"
+                                     f"  buildTypes {{\n    release {{\n      signingConfig = signingConfigs.{signing}\n"
+                                     "    }\n  }\n}\n"),
         "android/app/src/main/AndroidManifest.xml": manifest(perms, app_attrs, app_body),
         "store/listing.yaml": yaml.safe_dump(LISTING if listing is None else listing, allow_unicode=True),
         "lib/main.dart": "void main() => runApp(const App());\n",
@@ -105,6 +107,8 @@ CASES = [
      app(app_attrs=' android:usesCleartextTraffic="true"'), ["AND-CLEARTEXT"], {}),
     ("android-debuggable", "Play: the release build is debuggable.",
      app(app_attrs=' android:debuggable="true"'), ["AND-DEBUGGABLE"], {}),
+    ("android-debug-signed-release", "Play: you uploaded an app bundle that was signed in debug mode.",
+     app(signing="debug"), ["AND-DEBUG-SIGNING"], {}),
     ("android-exported-missing", "Upload error: android:exported must be set for components with intent filters.",
      app(app_body='    <activity android:name=".Main"><intent-filter><action android:name="android.intent.action.MAIN"/>'
                   "</intent-filter></activity>\n"), ["AND-EXPORTED"], {}),

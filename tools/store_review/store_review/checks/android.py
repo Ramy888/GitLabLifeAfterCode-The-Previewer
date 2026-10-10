@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import re
 from collections.abc import Iterator
 
 from store_review.checks.shared import has_accounts
@@ -21,6 +22,25 @@ def target_sdk(snap: AppSnapshot, pack: dict) -> Iterator[Hit]:
     if t is not None and t.value is not None and t.value < required:
         yield Hit(f"targetSdk {t.value} is below the required {required} (since {pack['required_target_sdk_since']})",
                   [Evidence(t.path, t.line, t.text)], {"required": required, "path": t.path})
+
+
+@check("AND-DEBUG-SIGNING")
+def debug_signing(snap: AppSnapshot, pack: dict) -> Iterator[Hit]:
+    if snap.gradle is None:
+        return
+    path, text = snap.gradle
+    in_release, depth = False, 0
+    for n, line in enumerate(text.splitlines(), start=1):
+        code = line.split("//", 1)[0]
+        if re.search(r"\brelease\s*\{", code) or re.search(r'getByName\(\s*"release"\s*\)\s*\{', code):
+            in_release, depth = True, 0
+        if in_release:
+            depth += code.count("{") - code.count("}")
+            if re.search(r"signingConfig\s*=?\s*signingConfigs\.(debug|getByName\(\s*\"debug\"\s*\))", code):
+                yield Hit("The release build is signed with the debug key", [Evidence(path, n, code.strip())], {"path": path})
+                return
+            if depth <= 0:
+                in_release = False
 
 
 @check("AND-DELETION-URL")

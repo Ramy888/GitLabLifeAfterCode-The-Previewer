@@ -44,6 +44,7 @@ class AppSnapshot:
     target_sdk: GradleValue | None
     store: dict[str, dict]
     dart_sources: list[tuple[str, str]]
+    gradle: tuple[str, str] | None = None
     env: Mapping[str, str] = field(default_factory=dict)
     info_plist_path: str = INFO_PLIST
     xcprivacy_path: str = XCPRIVACY
@@ -98,6 +99,14 @@ def _target_sdk(root: Path) -> GradleValue | None:
     return None
 
 
+def _gradle_text(root: Path) -> tuple[str, str] | None:
+    for rel in GRADLE_FILES:
+        p = root / rel
+        if p.is_file():
+            return rel, p.read_text()
+    return None
+
+
 def _dart_sources(root: Path) -> list[tuple[str, str]]:
     lib = root / "lib"
     if not lib.is_dir():
@@ -130,5 +139,6 @@ def load_snapshot(root: Path | str, env: Mapping[str, str] | None = None) -> App
         target_sdk=_target_sdk(root),
         store={name: _load_yaml(root / "store" / f"{name}.yaml") for name in STORE_FILES},
         dart_sources=_dart_sources(root),
+        gradle=_gradle_text(root),
         env=dict(os.environ if env is None else env),
     )

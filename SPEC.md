@@ -111,6 +111,7 @@ GitLab Release: per-store ready-to-submit package + findings + benchmark. The hu
 | AND-DATASAFETY-PERM | android | A dangerous permission in the merged-source manifest is not declared in `store/data_safety.yaml` | blocker |
 | AND-CLEARTEXT | android | `usesCleartextTraffic="true"` | warning 4 |
 | AND-DEBUGGABLE | android | `android:debuggable="true"` | blocker |
+| AND-DEBUG-SIGNING | android | The release buildType uses `signingConfigs.debug` (found live: `android/app/build.gradle:40`) | blocker |
 | AND-EXPORTED | android | An activity with an intent-filter lacks `android:exported` | blocker |
 | SHR-DEMO-LOGIN | both | Account creation detected and CI variable `STORE_REVIEW_DEMO_LOGIN` absent | blocker → handoff (Apple 2.1, Play App access) |
 | SHR-PRIVACY-URL | both | `store/listing.yaml: privacy_policy_url` absent, or unreachable at resume | blocker → handoff |
@@ -136,7 +137,7 @@ Anything that fails is re-posted as a narrowed checklist, and no package is prod
 
 ## Acceptance criteria
 1. `uv run pytest` in `tools/store_review` passes. Every rule ID in the MVP table has ≥1 positive and ≥1 negative unit test.
-2. `store-review scan --app . --out findings.json` on this repo (before fixes) reports **AND-TARGETSDK (blocker)**, **AND-DELETION-URL (blocker)**,
+2. `store-review scan --app . --out findings.json` on this repo (before fixes) reports **AND-TARGETSDK (blocker)**, **AND-DEBUG-SIGNING (blocker)**, **AND-DELETION-URL (blocker)**,
    **SHR-DEMO-LOGIN (blocker)**, **SHR-PRIVACY-URL (blocker)** and **IOS-PRIVACY-MANIFEST (warning)**. It does **not** report SHR-ACCOUNT-DELETION,
    because FirebaseUI `ProfileScreen` is detected as deletion evidence. Both stores show `status: blocked`, readiness ≤ 40.
 3. `findings.json` validates against the schema. A finding without `evidence` is rejected by `merge`, with exit code 2.
@@ -147,7 +148,7 @@ Anything that fails is re-posted as a narrowed checklist, and no package is prod
 7. `store-review validate-inputs` with all inputs valid exits 0. With one URL returning 404 it exits 3 and prints the narrowed checklist. Tested with an injected fetcher, no network.
 8. `store-review package --store ios|android` writes `dist/store-package/<store>/{metadata.json,reviewer-notes.md,privacy-answers.json,release-notes.en.md,release-notes.ar.md,checklist.md}`.
    It refuses (exit 4) while that store has an open blocker.
-9. Applying the Fixer recipes (targetSdk 36, xcprivacy with UserDefaults CA92.1), adding `store/listing.yaml` URLs and setting the demo-login variable
+9. Applying the Fixer recipes (targetSdk 36, release signing config, xcprivacy with UserDefaults CA92.1), adding `store/listing.yaml` URLs and setting the demo-login variable
    leaves **0 blockers**. The scan then shows both stores `ready` or `needs-work`, never `blocked`.
 10. `.gitlab-ci.yml` passes `gitlab-ci-lint` (local schema check) and defines jobs `engine:test`, `flutter:test`, `build:web`, `build:android`, `review:scan`,
     `review:benchmark`, `package:stores` (tags or manual) and `deploy:cloudrun` (manual, protected). `findings.json` and the benchmark are job artifacts.

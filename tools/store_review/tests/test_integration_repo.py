@@ -22,7 +22,7 @@ def scan(root, env):
 def test_live_repo_findings_match_spec():
     findings, doc = scan(REPO, env={})
     by_id = {f.id: f.severity for f in findings}
-    for rid in ("AND-TARGETSDK", "AND-DELETION-URL", "SHR-DEMO-LOGIN", "SHR-PRIVACY-URL"):
+    for rid in ("AND-TARGETSDK", "AND-DEBUG-SIGNING", "AND-DELETION-URL", "SHR-DEMO-LOGIN", "SHR-PRIVACY-URL"):
         assert by_id.get(rid) == "blocker", rid
     assert by_id.get("IOS-PRIVACY-MANIFEST") == "warning"
     assert "SHR-ACCOUNT-DELETION" not in by_id  # FirebaseUI ProfileScreen is deletion evidence
@@ -36,7 +36,8 @@ def test_fixes_clear_every_blocker(tmp_path):
         dst.parent.mkdir(parents=True, exist_ok=True)
         (shutil.copytree if src.is_dir() else shutil.copy)(src, dst)
     gradle = tmp_path / "android/app/build.gradle"
-    gradle.write_text(gradle.read_text().replace("targetSdk = 34", "targetSdk = 36"))
+    gradle.write_text(gradle.read_text().replace("targetSdk = 34", "targetSdk = 36")
+                      .replace("signingConfig = signingConfigs.debug", "signingConfig = signingConfigs.release"))
     plist_path = tmp_path / "ios/Runner/Info.plist"
     info = plistlib.loads(plist_path.read_bytes())
     info["ITSAppUsesNonExemptEncryption"] = False

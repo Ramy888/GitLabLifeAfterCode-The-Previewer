@@ -160,3 +160,24 @@ def test_metadata_mentions_other_platform(make_app):
 def test_metadata_clean(make_app):
     listing = LISTING_OK + "ios:\n  description: Track your time\nandroid:\n  description: Track your time\n"
     assert "SHR-METADATA-PLATFORM" not in ids(make_app({"store/listing.yaml": listing}))
+
+
+# AND-DEBUG-SIGNING
+RELEASE_DEBUG = "android {\n  buildTypes {\n    release {\n      signingConfig = signingConfigs.debug\n    }\n  }\n}\n"
+RELEASE_OK = "android {\n  buildTypes {\n    release {\n      signingConfig = signingConfigs.release\n    }\n  }\n}\n"
+
+
+def test_release_signed_with_debug_key(make_app):
+    root = make_app({"android/app/build.gradle": RELEASE_DEBUG, MANIFEST: manifest()})
+    (f,) = [f for f in run(root) if f.id == "AND-DEBUG-SIGNING"]
+    assert f.severity == "blocker" and f.evidence[0].line == 4
+
+
+def test_release_signed_with_release_key(make_app):
+    root = make_app({"android/app/build.gradle": RELEASE_OK, MANIFEST: manifest()})
+    assert "AND-DEBUG-SIGNING" not in ids(root)
+
+
+def test_debug_build_type_may_use_debug_key(make_app):
+    gradle = "android {\n  buildTypes {\n    debug {\n      signingConfig = signingConfigs.debug\n    }\n  }\n}\n"
+    assert "AND-DEBUG-SIGNING" not in ids(make_app({"android/app/build.gradle": gradle, MANIFEST: manifest()}))

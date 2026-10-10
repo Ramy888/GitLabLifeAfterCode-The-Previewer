@@ -50,6 +50,14 @@ rules:
     fix: {kind: auto, recipe: "Add android:exported to {component}"}
     source_url: https://developer.android.com/about/versions/12/behavior-changes-12#exported
     verified: 2026-10-10
+  AND-DEBUG-SIGNING:
+    layer: automated
+    guideline: "Play: app bundles signed in debug mode are rejected at upload"
+    severity: blocker
+    weight: 0
+    fix: {kind: manual, recipe: "Create an upload key, load it from CI/CD variables, and point the release buildType at it in {path}"}
+    source_url: https://developer.android.com/studio/publish/app-signing
+    verified: 2026-10-10
 
 required_target_sdk: 36
 required_target_sdk_since: 2026-08-31

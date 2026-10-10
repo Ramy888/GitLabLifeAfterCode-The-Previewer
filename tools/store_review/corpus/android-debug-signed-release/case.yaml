@@ -1,0 +1,4 @@
+rejection: 'Play: you uploaded an app bundle that was signed in debug mode.'
+expected:
+- AND-DEBUG-SIGNING
+env: {}

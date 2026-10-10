@@ -2,4 +2,9 @@ android {
   defaultConfig {
     targetSdk = 35
   }
+  buildTypes {
+    release {
+      signingConfig = signingConfigs.release
+    }
+  }
 }

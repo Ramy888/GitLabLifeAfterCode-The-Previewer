@@ -1,0 +1,10 @@
+android {
+  defaultConfig {
+    targetSdk = 36
+  }
+  buildTypes {
+    release {
+      signingConfig = signingConfigs.debug
+    }
+  }
+}
