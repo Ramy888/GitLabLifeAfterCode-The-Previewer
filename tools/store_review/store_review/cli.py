@@ -7,12 +7,14 @@ import json
 import sys
 from pathlib import Path
 
+from store_review import inputs
 from store_review.model import SchemaError
 from store_review.report import app_info, build_document, merge_llm, render_handoff, render_markdown
 from store_review.rules import run_checks
 from store_review.snapshot import load_snapshot
 
 EXIT_SCHEMA = 2
+EXIT_INPUTS = 3
 
 
 def _read_json(path: str) -> dict:
@@ -50,6 +52,21 @@ def cmd_handoff(args: argparse.Namespace) -> int:
     return 0
 
 
+def cmd_validate_inputs(args: argparse.Namespace) -> int:
+    items = _read_json(args.findings).get("inputs_required", [])
+    problems = inputs.validate_inputs(items, load_snapshot(args.app), inputs.http_status)
+    if not problems:
+        print("All inputs are in place. Resuming the review.")
+        return 0
+    print("### Still missing")
+    print()
+    for p in problems:
+        print(f"- [ ] **{p['key']}**: {p['problem']}. {p['ask']}.")
+    print()
+    print("Fix these, then comment `@store-review resume` again.")
+    return EXIT_INPUTS
+
+
 def _not_yet(args: argparse.Namespace) -> int:
     print(f"{args.command}: not implemented yet", file=sys.stderr)
     return 1
@@ -74,8 +91,12 @@ def build_parser() -> argparse.ArgumentParser:
     p.add_argument("--findings", default="findings.json")
     p.set_defaults(func=cmd_handoff)
 
-    for name, help_text in (("validate-inputs", "Check the human's inputs before resuming"),
-                            ("package", "Write the ready-to-submit package for one store"),
+    p = sub.add_parser("validate-inputs", help="Check the human's inputs before resuming")
+    p.add_argument("--findings", default="findings.json", help="findings.json from the run that posted the handoff")
+    p.add_argument("--app", default=".")
+    p.set_defaults(func=cmd_validate_inputs)
+
+    for name, help_text in (("package", "Write the ready-to-submit package for one store"),
                             ("benchmark", "Score the deterministic rules against the Rejection Corpus")):
         sub.add_parser(name, help=help_text).set_defaults(func=_not_yet)
     return parser
