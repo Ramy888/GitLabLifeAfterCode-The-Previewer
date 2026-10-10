@@ -1,4 +1,4 @@
-# Plan: Store Review Rehearsal (from SPEC.md)
+# Plan: The Previewer (from SPEC.md)
 
 Each task is RED → GREEN → full suite → commit. Status: [ ] pending · [x] done · [~] blocked.
 Dependency order is top to bottom unless noted.

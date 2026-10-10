@@ -1,6 +1,7 @@
-# Store Review Rehearsal
+# The Previewer
 
-Rehearse Apple App Store review and Google Play review for this Flutter app before you submit it.
+Reviews your app the way Apple and Google will, before you submit. The Previewer rehearses Apple App Store review
+and Google Play review for this Flutter app.
 A GitLab Duo flow reviews the app the way each store would, fixes what it can through merge requests, asks you once
 for what only you have, and hands you a package ready to submit for each store. It never uploads anything to a store.
 

@@ -1,4 +1,4 @@
-# Store Review Rehearsal pipeline.
+# The Previewer pipeline.
 # test -> build -> review -> package -> deploy
 # Release MRs from the Duo flow use branches named store-review/<version>: their pipeline validates the human's
 # inputs and builds the per-store packages. Merging that MR is the human's approval of the outcome.

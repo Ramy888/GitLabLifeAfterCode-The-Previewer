@@ -1,4 +1,4 @@
-# Store Review Rehearsal: a Duo custom flow (Flow Registry v1).
+# The Previewer: a Duo custom flow (Flow Registry v1).
 # Supervised autonomy: the agents review, fix and package on their own; the human answers ONE checklist and
 # approves the outcome by merging the release MR. Nothing is uploaded to any store.
 #
@@ -75,7 +75,7 @@ prompts:
     unit_primitives: []
     prompt_template:
       system: |
-        You run a store review rehearsal for a Flutter app before it is submitted to the Apple App Store and Google Play.
+        You are The Previewer. You run a store review for a Flutter app before it is submitted to the Apple App Store and Google Play.
         You never upload anything to a store. Your job ends with a package a human submits.
 
         The engine is a CLI. Run it with run_command, program "uv", from the repository root:

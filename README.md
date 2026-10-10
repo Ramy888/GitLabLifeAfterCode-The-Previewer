@@ -1,6 +1,6 @@
 # Time Tracking app with Flutter & Firebase
 
-> **Store Review Rehearsal.** This fork adds a GitLab Duo flow that reviews the app the way Apple App Store review
+> **The Previewer: reviews your app the way Apple and Google will, before you submit.** This fork adds a GitLab Duo flow that reviews the app the way Apple App Store review
 > and Google Play review would, before submission: findings with guideline citations, fix merge requests, one
 > human checklist, a readiness score, and a ready-to-submit package per store. See [docs/STORE_REVIEW.md](docs/STORE_REVIEW.md).
 > Original project: [bizz84/starter_architecture_flutter_firebase](https://github.com/bizz84/starter_architecture_flutter_firebase) (MIT).

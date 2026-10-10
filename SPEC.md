@@ -1,4 +1,4 @@
-# SPEC: Store Review Rehearsal
+# SPEC: The Previewer
 
 Status: approved by Ramy, who delegated all decisions on 2026-10-10. Source of truth for `/build`.
 Background and rationale: `../DEBATE.md` (Debates 2 and 3, plus the decisions dated 2026-10-10), `../CLAUDE.md`, `../BRIEF.md`.
@@ -6,7 +6,7 @@ Background and rationale: `../DEBATE.md` (Debates 2 and 3, plus the decisions da
 ## Context
 Mobile releases stall in store review. Teams submit, wait hours to days, and then get a rejection that cites a guideline number.
 **"The store said no, and the email doesn't say why."**
-Store Review Rehearsal is a GitLab Duo Agent Platform product. It reviews a Flutter app the way **Apple App Store review** and
+The Previewer is a GitLab Duo Agent Platform product. It reviews a Flutter app the way **Apple App Store review** and
 **Google Play review** would, before submission. It fixes what it can safely fix through MRs, asks the human **once** for what only a
 human has, then produces a **ready-to-submit package per store** with a **readiness score** whose method is published and benchmarked.
 
