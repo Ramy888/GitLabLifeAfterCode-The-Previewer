@@ -12,7 +12,7 @@ Dependency order is top to bottom unless noted.
 - [x] **T7 Inputs**: `validate-inputs` with an injectable fetcher (exit 3 plus a narrowed list). AC: SPEC criterion 7. *Deps: T6*
 - [x] **T8 Package**: `package --store` (exit 4 while blocked). AC: SPEC criterion 8. *Deps: T6*
 - [x] **T9 Rejection Corpus and benchmark**: at least 36 cases and the `benchmark` command with thresholds. AC: SPEC criterion 4. *Deps: T3, T4*
-- [ ] **T10 Repo integration**: add `store/` metadata files (no URLs yet). Integration tests for SPEC criterion 2 (live repo) and criterion 9 (fixes applied in a temp copy). *Deps: T6*
+- [x] **T10 Repo integration**: add `store/` metadata files (no URLs yet). Integration tests for SPEC criterion 2 (live repo) and criterion 9 (fixes applied in a temp copy). *Deps: T6*
 - [ ] **T11 CI**: `.gitlab-ci.yml` with the SPEC criterion 10 jobs, plus a local lint test. *Deps: T6, T9*
 - [ ] **T12 Duo flow and agent prompts**: `.gitlab/duo/flows/store-review.yaml` and `.gitlab/duo/agents/*.md`, checked against GitLab's custom-flow docs. AC: SPEC criterion 11 (static check only). *Deps: T6*
 - [ ] **T13 Cloud Run**: `deploy/cloudrun/{Dockerfile,nginx.conf,deploy.sh}`. AC: `docker build` of the image succeeds with a stub `build/web`. *Deps: none*

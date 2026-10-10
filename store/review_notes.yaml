@@ -1,0 +1,5 @@
+# Notes for store reviewers. Never put credentials here: the demo login lives in CI/CD variable STORE_REVIEW_DEMO_LOGIN.
+account_deletion_path: Account tab > Profile > Delete account
+notes:
+  - Sign in with the demo account, open Jobs, create a job, then add entries to see the totals.
+answers: {}

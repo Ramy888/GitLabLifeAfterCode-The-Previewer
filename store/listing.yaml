@@ -1,0 +1,11 @@
+# Store listing text the reviewer checks. URLs are left empty on purpose: the review asks a human for them.
+privacy_policy_url:
+account_deletion_url:
+ios:
+  name: Time Tracker
+  subtitle: Track jobs, entries and pay
+  description: Create jobs, log time entries against them, and see how many hours and how much pay each job adds up to.
+android:
+  name: Time Tracker
+  short_description: Track jobs, entries and pay
+  description: Create jobs, log time entries against them, and see how many hours and how much pay each job adds up to.

@@ -1,0 +1,7 @@
+# Mirror of the Google Play Data safety answers. List every dangerous permission the app requests.
+declared_permissions: []
+data_collected:
+  - type: Email address
+    purpose: Account management
+  - type: App activity (jobs and time entries)
+    purpose: App functionality
