@@ -10,7 +10,7 @@ Dependency order is top to bottom unless noted.
 - [x] **T5 Score**: gated readiness and band per store. AC: SPEC criterion 5. *Deps: T1*
 - [x] **T6 Report and CLI**: `scan`, `merge --llm` (exit 2 when evidence is missing), Markdown report, `handoff` (redacts values). AC: SPEC criteria 3 and 6. *Deps: T3, T4, T5*
 - [x] **T7 Inputs**: `validate-inputs` with an injectable fetcher (exit 3 plus a narrowed list). AC: SPEC criterion 7. *Deps: T6*
-- [ ] **T8 Package**: `package --store` (exit 4 while blocked). AC: SPEC criterion 8. *Deps: T6*
+- [x] **T8 Package**: `package --store` (exit 4 while blocked). AC: SPEC criterion 8. *Deps: T6*
 - [ ] **T9 Rejection Corpus and benchmark**: at least 36 cases and the `benchmark` command with thresholds. AC: SPEC criterion 4. *Deps: T3, T4*
 - [ ] **T10 Repo integration**: add `store/` metadata files (no URLs yet). Integration tests for SPEC criterion 2 (live repo) and criterion 9 (fixes applied in a temp copy). *Deps: T6*
 - [ ] **T11 CI**: `.gitlab-ci.yml` with the SPEC criterion 10 jobs, plus a local lint test. *Deps: T6, T9*

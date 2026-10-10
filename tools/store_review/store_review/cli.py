@@ -9,12 +9,14 @@ from pathlib import Path
 
 from store_review import inputs
 from store_review.model import SchemaError
+from store_review.package import PackageBlocked, write_package
 from store_review.report import app_info, build_document, merge_llm, render_handoff, render_markdown
 from store_review.rules import run_checks
 from store_review.snapshot import load_snapshot
 
 EXIT_SCHEMA = 2
 EXIT_INPUTS = 3
+EXIT_BLOCKED = 4
 
 
 def _read_json(path: str) -> dict:
@@ -67,6 +69,16 @@ def cmd_validate_inputs(args: argparse.Namespace) -> int:
     return EXIT_INPUTS
 
 
+def cmd_package(args: argparse.Namespace) -> int:
+    try:
+        d = write_package(load_snapshot(args.app), _read_json(args.findings), args.store, Path(args.out))
+    except PackageBlocked as err:
+        print(f"package refused: {err}", file=sys.stderr)
+        return EXIT_BLOCKED
+    print(f"wrote {d}")
+    return 0
+
+
 def _not_yet(args: argparse.Namespace) -> int:
     print(f"{args.command}: not implemented yet", file=sys.stderr)
     return 1
@@ -96,8 +108,14 @@ def build_parser() -> argparse.ArgumentParser:
     p.add_argument("--app", default=".")
     p.set_defaults(func=cmd_validate_inputs)
 
-    for name, help_text in (("package", "Write the ready-to-submit package for one store"),
-                            ("benchmark", "Score the deterministic rules against the Rejection Corpus")):
+    p = sub.add_parser("package", help="Write the ready-to-submit package for one store")
+    p.add_argument("--store", required=True, choices=["ios", "android"])
+    p.add_argument("--findings", default="findings.json")
+    p.add_argument("--app", default=".")
+    p.add_argument("--out", default="dist/store-package")
+    p.set_defaults(func=cmd_package)
+
+    for name, help_text in (("benchmark", "Score the deterministic rules against the Rejection Corpus"),):
         sub.add_parser(name, help=help_text).set_defaults(func=_not_yet)
     return parser
 
