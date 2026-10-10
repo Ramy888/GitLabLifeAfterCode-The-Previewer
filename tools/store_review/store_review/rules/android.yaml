@@ -1,2 +1,69 @@
+# Google Play rule pack.
 store: android
-rules: {}
+rules:
+  AND-TARGETSDK:
+    layer: automated
+    guideline: "Play: Target API level requirement"
+    severity: blocker
+    weight: 0
+    fix: {kind: auto, recipe: "Set targetSdk = {required} in {path}"}
+    source_url: https://developer.android.com/google/play/requirements/target-sdk
+    verified: 2026-10-10
+  AND-DELETION-URL:
+    layer: automated
+    guideline: "Play: User Data policy, account deletion (web link)"
+    severity: blocker
+    weight: 0
+    fix: {kind: handoff, recipe: "Publish a web page where users can request account deletion and set store/listing.yaml account_deletion_url"}
+    source_url: https://support.google.com/googleplay/android-developer/answer/13327111
+    verified: 2026-10-10
+  AND-DATASAFETY-PERM:
+    layer: automated
+    guideline: "Play: Data safety section accuracy"
+    severity: blocker
+    weight: 0
+    fix: {kind: manual, recipe: "Declare the data {permission} gives access to in the Data safety form and list it in store/data_safety.yaml"}
+    source_url: https://support.google.com/googleplay/android-developer/answer/10787469
+    verified: 2026-10-10
+  AND-CLEARTEXT:
+    layer: automated
+    guideline: "Play: Device and network abuse / security best practice (cleartext traffic)"
+    severity: warning
+    weight: 4
+    fix: {kind: manual, recipe: "Remove usesCleartextTraffic or use a network security config scoped to specific hosts"}
+    source_url: https://developer.android.com/privacy-and-security/security-config
+    verified: 2026-10-10
+  AND-DEBUGGABLE:
+    layer: automated
+    guideline: "Play: release builds must not be debuggable"
+    severity: blocker
+    weight: 0
+    fix: {kind: auto, recipe: "Remove android:debuggable from the release manifest"}
+    source_url: https://developer.android.com/studio/publish/preparing
+    verified: 2026-10-10
+  AND-EXPORTED:
+    layer: automated
+    guideline: "Android 12+: components with intent filters must declare android:exported"
+    severity: blocker
+    weight: 0
+    fix: {kind: auto, recipe: "Add android:exported to {component}"}
+    source_url: https://developer.android.com/about/versions/12/behavior-changes-12#exported
+    verified: 2026-10-10
+
+required_target_sdk: 36
+required_target_sdk_since: 2026-08-31
+dangerous_permissions:
+  - android.permission.CAMERA
+  - android.permission.RECORD_AUDIO
+  - android.permission.ACCESS_FINE_LOCATION
+  - android.permission.ACCESS_COARSE_LOCATION
+  - android.permission.ACCESS_BACKGROUND_LOCATION
+  - android.permission.READ_CONTACTS
+  - android.permission.READ_CALENDAR
+  - android.permission.READ_MEDIA_IMAGES
+  - android.permission.READ_MEDIA_VIDEO
+  - android.permission.READ_EXTERNAL_STORAGE
+  - android.permission.BODY_SENSORS
+  - android.permission.READ_PHONE_STATE
+  - android.permission.READ_SMS
+  - android.permission.ACTIVITY_RECOGNITION

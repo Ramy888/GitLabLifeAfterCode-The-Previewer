@@ -1,2 +1,55 @@
+# Rules that apply to both Apple App Store and Google Play review.
 store: shared
-rules: {}
+rules:
+  SHR-ACCOUNT-DELETION:
+    layer: automated
+    guideline: "Apple 5.1.1(v) Account deletion; Play User Data policy (in-app deletion)"
+    severity: blocker
+    weight: 0
+    fix: {kind: manual, recipe: "Add an in-app path that deletes the account and its data, then set store/review_notes.yaml account_deletion_path"}
+    source_url: https://developer.apple.com/support/offering-account-deletion-in-your-app/
+    verified: 2026-10-10
+  SHR-DEMO-LOGIN:
+    layer: reviewer
+    guideline: "Apple 2.1 App Completeness (demo account); Play App access"
+    severity: blocker
+    weight: 0
+    fix: {kind: handoff, recipe: "Create a reviewer account and store it as masked CI/CD variable STORE_REVIEW_DEMO_LOGIN (user:password)"}
+    source_url: https://developer.apple.com/app-store/review/guidelines/#app-completeness
+    verified: 2026-10-10
+  SHR-PRIVACY-URL:
+    layer: automated
+    guideline: "Apple 5.1.1(i) Privacy policy; Play User Data policy (privacy policy)"
+    severity: blocker
+    weight: 0
+    fix: {kind: handoff, recipe: "Publish a privacy policy and set store/listing.yaml privacy_policy_url"}
+    source_url: https://developer.apple.com/app-store/review/guidelines/#data-collection-and-storage
+    verified: 2026-10-10
+  SHR-PLACEHOLDER-UI:
+    layer: reviewer
+    guideline: "Apple 2.1 App Completeness; Play Minimum functionality"
+    severity: warning
+    weight: 5
+    fix: {kind: manual, recipe: "Finish or hide the feature behind '{text}' before submission"}
+    source_url: https://developer.apple.com/app-store/review/guidelines/#app-completeness
+    verified: 2026-10-10
+  SHR-METADATA-PLATFORM:
+    layer: reviewer
+    guideline: "Apple 2.3.10 Accurate metadata (no other platforms)"
+    severity: warning
+    weight: 3
+    fix: {kind: manual, recipe: "Remove '{word}' from the {store} listing text"}
+    source_url: https://developer.apple.com/app-store/review/guidelines/#accurate-metadata
+    verified: 2026-10-10
+
+account_plugins: [firebase_auth, firebase_ui_auth, supabase_flutter, amplify_auth_cognito, appwrite, auth0_flutter]
+deletion_evidence:
+  - "\\bProfileScreen\\("            # firebase_ui_auth ProfileScreen always renders DeleteAccountButton (v1.16.1)
+  - "\\bDeleteAccountButton\\("
+  - "\\.delete\\(\\)\\s*;"               # user.delete(); currentUser!.delete();
+  - "\\bdeleteUser\\("
+placeholder_ui_pattern: "(?i)['\"][^'\"\\n]*(coming soon|lorem ipsum|\\bTODO\\b|not implemented)[^'\"\\n]*['\"]"
+other_platform_words:
+  ios: ["Android", "Google Play"]
+  android: ["iPhone", "iPad", "App Store", "iOS"]
+demo_login_variable: STORE_REVIEW_DEMO_LOGIN
