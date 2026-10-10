@@ -70,3 +70,27 @@ def test_http_status_returns_error_code(monkeypatch):
 
     monkeypatch.setattr(inputs.urllib.request, "urlopen", fake_urlopen)
     assert inputs.http_status("https://ex.com/missing") == 404
+
+
+def test_required_inputs_derived_from_app_even_after_answers(make_app):
+    from store_review.inputs import required_inputs
+
+    auth = "name: demo\nversion: 1.0.0\ndependencies:\n  firebase_auth: ^5.0.0\n"
+    files = {"pubspec.yaml": auth, "store/listing.yaml": LISTING,
+             "android/app/src/main/AndroidManifest.xml": '<manifest xmlns:android="http://schemas.android.com/apk/res/android"><application/></manifest>'}
+    snap = load_snapshot(make_app(files), env={"STORE_REVIEW_DEMO_LOGIN": "u:p"})
+    keys = {i["key"] for i in required_inputs(snap)}
+    # Already provided, but still listed so their values get validated.
+    assert keys == {"STORE_REVIEW_DEMO_LOGIN", "privacy_policy_url", "account_deletion_url"}
+    assert snap.env["STORE_REVIEW_DEMO_LOGIN"] == "u:p"  # the caller's snapshot is not mutated
+
+
+def test_cli_validate_inputs_without_findings_file(make_app, monkeypatch, capsys):
+    auth = "name: demo\nversion: 1.0.0\ndependencies:\n  firebase_auth: ^5.0.0\n"
+    app = make_app({"pubspec.yaml": auth, "store/listing.yaml": LISTING})
+    monkeypatch.delenv("STORE_REVIEW_DEMO_LOGIN", raising=False)
+    monkeypatch.setattr("store_review.inputs.http_status", ok_fetch)
+    assert main(["validate-inputs", "--app", str(app)]) == 3
+    assert "STORE_REVIEW_DEMO_LOGIN" in capsys.readouterr().out
+    monkeypatch.setenv("STORE_REVIEW_DEMO_LOGIN", "u:p")
+    assert main(["validate-inputs", "--app", str(app)]) == 0

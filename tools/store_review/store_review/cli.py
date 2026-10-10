@@ -59,8 +59,9 @@ def cmd_handoff(args: argparse.Namespace) -> int:
 
 
 def cmd_validate_inputs(args: argparse.Namespace) -> int:
-    items = _read_json(args.findings).get("inputs_required", [])
-    problems = inputs.validate_inputs(items, load_snapshot(args.app), inputs.http_status)
+    snap = load_snapshot(args.app)
+    items = _read_json(args.findings).get("inputs_required", []) if args.findings else inputs.required_inputs(snap)
+    problems = inputs.validate_inputs(items, snap, inputs.http_status)
     if not problems:
         print("All inputs are in place. Resuming the review.")
         return 0
@@ -118,7 +119,7 @@ def build_parser() -> argparse.ArgumentParser:
     p.set_defaults(func=cmd_handoff)
 
     p = sub.add_parser("validate-inputs", help="Check the human's inputs before resuming")
-    p.add_argument("--findings", default="findings.json", help="findings.json from the run that posted the handoff")
+    p.add_argument("--findings", help="findings.json from the run that posted the handoff (default: derive from the app)")
     p.add_argument("--app", default=".")
     p.set_defaults(func=cmd_validate_inputs)
 

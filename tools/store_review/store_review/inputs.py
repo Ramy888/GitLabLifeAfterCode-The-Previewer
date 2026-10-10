@@ -6,6 +6,8 @@ import urllib.error
 import urllib.request
 from collections.abc import Callable
 
+import dataclasses
+
 from store_review.snapshot import AppSnapshot
 
 Fetch = Callable[[str], int]
@@ -46,3 +48,18 @@ def validate_inputs(items: list[dict], snap: AppSnapshot, fetch: Fetch | None = 
         if problem:
             problems.append({**item, "problem": problem})
     return problems
+
+
+def required_inputs(snap: AppSnapshot) -> list[dict]:
+    """Every human input this app needs, whether or not it was already provided.
+
+    Re-runs the checks on a copy of the snapshot with the inputs blanked out, so values the human has
+    already supplied are still listed and therefore still validated.
+    """
+    from store_review.report import inputs_required
+    from store_review.rules import run_checks
+
+    store = {**snap.store, "listing": {k: v for k, v in snap.store["listing"].items() if not k.endswith("_url")},
+             "review_notes": {k: v for k, v in snap.store["review_notes"].items() if k != "answers"}}
+    blank = dataclasses.replace(snap, env={}, store=store)
+    return inputs_required(run_checks(blank))
