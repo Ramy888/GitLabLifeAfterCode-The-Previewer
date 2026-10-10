@@ -14,7 +14,6 @@ components:
     type: AgentComponent
     description: "Reviews the app the way Apple App Review would: reads the store-review scan, inspects Info.plist, the privacy manifest, metadata and app screens, and writes judgement findings with evidence."
     prompt_id: "ios_reviewer"
-    max_cycles: 40
     toolset: ["run_command", "read_file", "read_files", "list_dir", "find_files", "create_file_with_contents"]
     ui_log_events: ["on_agent_final_answer", "on_tool_execution_failed"]
 
@@ -22,7 +21,6 @@ components:
     type: AgentComponent
     description: "Reviews the app the way Google Play review would: reads the store-review scan, inspects the manifest, gradle config, Data safety answers and listing, and writes judgement findings with evidence."
     prompt_id: "android_reviewer"
-    max_cycles: 40
     toolset: ["run_command", "read_file", "read_files", "list_dir", "find_files", "create_file_with_contents"]
     ui_log_events: ["on_agent_final_answer", "on_tool_execution_failed"]
 
@@ -30,7 +28,6 @@ components:
     type: AgentComponent
     description: "Opens one merge request per auto-fixable finding (fix.kind == auto), using the recipe in findings.json. Never touches secrets or signing keys."
     prompt_id: "fixer"
-    max_cycles: 60
     toolset: ["read_file", "edit_file", "create_file_with_contents", "create_branch", "create_commit", "create_merge_request", "run_command"]
     ui_log_events: ["on_agent_final_answer", "on_tool_execution_success", "on_tool_execution_failed"]
 
@@ -38,7 +35,6 @@ components:
     type: AgentComponent
     description: "Given a store rejection message, decides whether it is valid (route to the fixer) or wrong (write an appeal that cites the guideline and the evidence in the repo)."
     prompt_id: "advocate"
-    max_cycles: 30
     toolset: ["run_command", "read_file", "read_files", "find_files", "list_dir"]
     ui_log_events: ["on_agent_final_answer"]
 
@@ -56,7 +52,6 @@ components:
       - name: "fixer"
       - name: "advocate"
     max_delegations: 12
-    max_cycles: 80
     toolset:
       - "get_issue"
       - "list_issue_notes"
