@@ -1,1 +1,57 @@
-{"hosting":{"public":"build/web","ignore":["firebase.json","**/.*","**/node_modules/**"],"rewrites":[{"source":"**","destination":"/index.html"}]},"flutter":{"platforms":{"android":{"default":{"projectId":"starter-architecture-flutter","appId":"1:204483935261:android:6bf22efec4b84563779af4","fileOutput":"android/app/google-services.json"}},"ios":{"default":{"projectId":"starter-architecture-flutter","appId":"1:204483935261:ios:df913fb4eeda0a29779af4","uploadDebugSymbols":false,"fileOutput":"ios/Runner/GoogleService-Info.plist"}},"macos":{"default":{"projectId":"starter-architecture-flutter","appId":"1:204483935261:ios:df913fb4eeda0a29779af4","uploadDebugSymbols":false,"fileOutput":"macos/Runner/GoogleService-Info.plist"}},"dart":{"lib/firebase_options.dart":{"projectId":"starter-architecture-flutter","configurations":{"android":"1:204483935261:android:6bf22efec4b84563779af4","ios":"1:204483935261:ios:df913fb4eeda0a29779af4","macos":"1:204483935261:ios:df913fb4eeda0a29779af4","web":"1:204483935261:web:2eff4a630625a401779af4"}}}}}}
+{
+  "hosting": {
+    "public": "build/web",
+    "ignore": [
+      "firebase.json",
+      "**/.*",
+      "**/node_modules/**"
+    ],
+    "rewrites": [
+      {
+        "source": "**",
+        "destination": "/index.html"
+      }
+    ]
+  },
+  "flutter": {
+    "platforms": {
+      "android": {
+        "default": {
+          "projectId": "the-previewer-lac",
+          "appId": "1:57342278583:android:489dfb4bdab4a5b6be8632",
+          "fileOutput": "android/app/google-services.json"
+        }
+      },
+      "ios": {
+        "default": {
+          "projectId": "the-previewer-lac",
+          "appId": "1:57342278583:ios:3dfc5b624eb979f9be8632",
+          "uploadDebugSymbols": false,
+          "fileOutput": "ios/Runner/GoogleService-Info.plist"
+        }
+      },
+      "macos": {
+        "default": {
+          "projectId": "the-previewer-lac",
+          "appId": "1:57342278583:ios:3dfc5b624eb979f9be8632",
+          "uploadDebugSymbols": false,
+          "fileOutput": "macos/Runner/GoogleService-Info.plist"
+        }
+      },
+      "dart": {
+        "lib/firebase_options.dart": {
+          "projectId": "the-previewer-lac",
+          "configurations": {
+            "android": "1:57342278583:android:489dfb4bdab4a5b6be8632",
+            "ios": "1:57342278583:ios:3dfc5b624eb979f9be8632",
+            "macos": "1:57342278583:ios:3dfc5b624eb979f9be8632",
+            "web": "1:57342278583:web:ef2e54dcf3c13301be8632"
+          }
+        }
+      }
+    }
+  },
+  "firestore": {
+    "rules": "firestore.rules"
+  }
+}
