@@ -35,6 +35,7 @@ rules:
     verified: 2026-10-10
   IOS-ENCRYPTION-FLAG:
     layer: automated
+    input: {key: uses_non_exempt_encryption, kind: answer, ask: "Does the app use encryption beyond HTTPS and the operating system? (yes/no)"}
     guideline: "App Store Connect export compliance"
     severity: warning
     weight: 2

@@ -11,6 +11,7 @@ rules:
     verified: 2026-10-10
   SHR-DEMO-LOGIN:
     layer: reviewer
+    input: {key: STORE_REVIEW_DEMO_LOGIN, kind: ci_variable, ask: "A reviewer account (user:password) saved as a masked CI/CD variable"}
     guideline: "Apple 2.1 App Completeness (demo account); Play App access"
     severity: blocker
     weight: 0
@@ -19,6 +20,7 @@ rules:
     verified: 2026-10-10
   SHR-PRIVACY-URL:
     layer: automated
+    input: {key: privacy_policy_url, kind: url, ask: "The public URL of your privacy policy"}
     guideline: "Apple 5.1.1(i) Privacy policy; Play User Data policy (privacy policy)"
     severity: blocker
     weight: 0

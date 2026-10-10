@@ -8,7 +8,7 @@ Dependency order is top to bottom unless noted.
 - [x] **T3 iOS rules**: rule pack `ios.yaml` and checks IOS-USAGE-MISSING, IOS-USAGE-PLACEHOLDER, IOS-PRIVACY-MANIFEST, IOS-PRIVACY-REASON, IOS-ENCRYPTION-FLAG, IOS-ATS-ARBITRARY, IOS-SIWA. AC: one positive and one negative test per rule. *Deps: T2*
 - [x] **T4 Android + shared rules**: AND-TARGETSDK, AND-DELETION-URL, AND-DATASAFETY-PERM, AND-CLEARTEXT, AND-DEBUGGABLE, AND-EXPORTED, SHR-ACCOUNT-DELETION (FirebaseUI ProfileScreen evidence), SHR-DEMO-LOGIN, SHR-PRIVACY-URL, SHR-PLACEHOLDER-UI, SHR-METADATA-PLATFORM. AC: one positive and one negative test per rule. *Deps: T2*
 - [x] **T5 Score**: gated readiness and band per store. AC: SPEC criterion 5. *Deps: T1*
-- [ ] **T6 Report and CLI**: `scan`, `merge --llm` (exit 2 when evidence is missing), Markdown report, `handoff` (redacts values). AC: SPEC criteria 3 and 6. *Deps: T3, T4, T5*
+- [x] **T6 Report and CLI**: `scan`, `merge --llm` (exit 2 when evidence is missing), Markdown report, `handoff` (redacts values). AC: SPEC criteria 3 and 6. *Deps: T3, T4, T5*
 - [ ] **T7 Inputs**: `validate-inputs` with an injectable fetcher (exit 3 plus a narrowed list). AC: SPEC criterion 7. *Deps: T6*
 - [ ] **T8 Package**: `package --store` (exit 4 while blocked). AC: SPEC criterion 8. *Deps: T6*
 - [ ] **T9 Rejection Corpus and benchmark**: at least 36 cases and the `benchmark` command with thresholds. AC: SPEC criterion 4. *Deps: T3, T4*

@@ -11,6 +11,7 @@ rules:
     verified: 2026-10-10
   AND-DELETION-URL:
     layer: automated
+    input: {key: account_deletion_url, kind: url, ask: "A public web page where users can request account deletion"}
     guideline: "Play: User Data policy, account deletion (web link)"
     severity: blocker
     weight: 0
