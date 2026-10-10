@@ -16,6 +16,6 @@ Dependency order is top to bottom unless noted.
 - [x] **T11 CI**: `.gitlab-ci.yml` with the SPEC criterion 10 jobs, plus a local lint test. *Deps: T6, T9*
 - [x] **T12 Duo flow and agent prompts**: `.gitlab/duo/flows/store-review.yaml` and `.gitlab/duo/agents/*.md`, checked against GitLab's custom-flow docs. AC: SPEC criterion 11 (static check only). *Deps: T6*
 - [x] **T13 Cloud Run**: `deploy/cloudrun/{Dockerfile,nginx.conf,deploy.sh}`. AC: `docker build` of the image succeeds with a stub `build/web`. *Deps: none*
-- [ ] **T14 Docs and license**: `docs/STORE_REVIEW.md`, a README section, and a LICENSE line for the new work. AC: SPEC criteria 12 and 13. *Deps: all*
+- [x] **T14 Docs and license**: `docs/STORE_REVIEW.md`, a README section, and a LICENSE line for the new work. AC: SPEC criteria 12 and 13. *Deps: all*
 
 Blocked until GitLab access and GCP are available: importing the project into GitLab, running the flow end to end, the real Cloud Run deploy, and recording the video.
