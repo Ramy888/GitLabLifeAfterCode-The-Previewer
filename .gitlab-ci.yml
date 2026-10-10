@@ -1,6 +1,15 @@
 # Store Review Rehearsal pipeline.
 # test -> build -> review -> package -> deploy
-# The Duo flow "store-review" starts pipelines with STORE_REVIEW_MODE=review (first pass) or resume (after the handoff).
+# Release MRs from the Duo flow use branches named store-review/<version>: their pipeline validates the human's
+# inputs and builds the per-store packages. Merging that MR is the human's approval of the outcome.
+
+workflow:
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+    - if: $CI_COMMIT_BRANCH && $CI_OPEN_MERGE_REQUESTS
+      when: never
+    - if: $CI_COMMIT_BRANCH
+    - if: $CI_COMMIT_TAG
 
 stages: [test, build, review, package, deploy]
 
@@ -95,30 +104,23 @@ review:scan:
     expose_as: store review
     expire_in: 30 days
 
-review:resume:
+review:inputs:
   extends: .engine
   stage: review
   needs: [engine:test]
   rules:
-    - if: $STORE_REVIEW_MODE == "resume"
+    - if: $CI_MERGE_REQUEST_SOURCE_BRANCH_NAME =~ /^store-review\//
+    - if: $CI_COMMIT_TAG
   script:
-    # Inputs to check come from the last review:scan on the default branch (the run that posted the handoff).
-    - 'curl --fail --silent --header "JOB-TOKEN: $CI_JOB_TOKEN"
-        "$CI_API_V4_URL/projects/$CI_PROJECT_ID/jobs/artifacts/$CI_DEFAULT_BRANCH/raw/findings.json?job=review:scan"
-        --output handoff-findings.json'
-    - cd $ENGINE_DIR && uv run store-review validate-inputs --findings $CI_PROJECT_DIR/handoff-findings.json --app $CI_PROJECT_DIR
-  before_script:
-    - apt-get update -qq && apt-get install -qq -y curl > /dev/null
-    - pip install --quiet uv==0.11.3
-    - cd $ENGINE_DIR && uv sync --quiet && cd $CI_PROJECT_DIR
+    - cd $ENGINE_DIR && uv run store-review validate-inputs --app $CI_PROJECT_DIR
 
 package:stores:
   extends: .engine
   stage: package
-  needs: [review:scan]
+  needs: [review:scan, review:inputs]
   rules:
+    - if: $CI_MERGE_REQUEST_SOURCE_BRANCH_NAME =~ /^store-review\//
     - if: $CI_COMMIT_TAG
-    - if: $STORE_REVIEW_MODE == "resume"
   script:
     - cd $ENGINE_DIR
     - status=0

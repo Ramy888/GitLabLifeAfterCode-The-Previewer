@@ -39,7 +39,8 @@ Release issue ──assign──▶ Duo flow "store-review"
    │ Advocate: any pasted/seeded rejection ─▶ fix MR (rejection valid) or appeal draft (rejection wrong, with evidence)
    │ Governor posts readiness per store + ONE handoff checklist ─▶ session ends
 Human sets CI variables / answers ─▶ comments "@store-review resume"
-   │ Governor validates inputs ─▶ narrowed checklist (incomplete) or packages (complete)
+   │ Governor writes answers on branch store-review/<version>, validates ─▶ narrowed checklist, or opens the release MR
+   │ Release MR pipeline: review:inputs + review:scan + package:stores ─▶ the human merges = approves the outcome
    ▼
 GitLab Release: per-store ready-to-submit package + findings + benchmark. The human submits in each console.
 ```
@@ -60,7 +61,7 @@ GitLab Release: per-store ready-to-submit package + findings + benchmark. The hu
 | `store/listing.yaml`, `store/data_safety.yaml`, `store/review_notes.yaml` | App store metadata the reviewer reads. Created for this app |
 | `ios/Runner/PrivacyInfo.xcprivacy` | Added by a Fixer MR (live demo fix) |
 | `.gitlab-ci.yml` | Stages: test → build → review → package → deploy |
-| `.gitlab/duo/flows/store-review.yaml` + `.gitlab/duo/agents/*.md` | Duo custom flow and the agent prompts |
+| `.gitlab/duo/flows/store-review.yaml` + `.gitlab/duo/agent-config.yml` | Duo custom flow (prompts inline, as Flow Registry v1 requires for custom flows) and the runner setup that installs the engine |
 | `deploy/cloudrun/` | Dockerfile (nginx serving `build/web`) and deploy script (Path B live URL, Google Cloud bonus) |
 | `docs/STORE_REVIEW.md` | How the score works, what is simulated, how to run it on any app |
 
@@ -152,7 +153,7 @@ Anything that fails is re-posted as a narrowed checklist, and no package is prod
    leaves **0 blockers**. The scan then shows both stores `ready` or `needs-work`, never `blocked`.
 10. `.gitlab-ci.yml` passes `gitlab-ci-lint` (local schema check) and defines jobs `engine:test`, `flutter:test`, `build:web`, `build:android`, `review:scan`,
     `review:benchmark`, `package:stores` (tags or manual) and `deploy:cloudrun` (manual, protected). `findings.json` and the benchmark are job artifacts.
-11. The flow YAML and agent prompts exist and validate against GitLab's published custom-flow schema (version noted in the file). *Running them needs GitLab access and is verified after onboarding.*
+11. The flow YAML (with inline prompts) passes static checks derived from Flow Registry v1 (`docs/flow_registry/v1.md` in gitlab-org/ai-assist): allowed top-level keys, component types, tool names from the tools registry, sub-agent descriptions, routes ending at `end`. *Running them needs GitLab access and is verified after onboarding.*
 12. `docs/STORE_REVIEW.md` states what is simulated (store decisions, seeded rejections) and what is real (scans, fixes, score, packages).
 13. `LICENSE.md` stays MIT. The original copyright is preserved and a line is added for the new work.
 

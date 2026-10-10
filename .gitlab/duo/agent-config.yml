@@ -1,0 +1,14 @@
+# Runtime setup for Duo flows in this project (read from the default branch only).
+# Installs the store-review engine so agents can run `uv run store-review ...` from the repo root.
+setup_script:
+  - python3 -m pip install --quiet uv==0.11.3
+  - cd tools/store_review && uv sync --quiet && cd -
+  - uv run --directory tools/store_review store-review --help > /dev/null
+
+cache:
+  key:
+    files:
+      - tools/store_review/uv.lock
+    prefix: store-review
+  paths:
+    - tools/store_review/.venv/

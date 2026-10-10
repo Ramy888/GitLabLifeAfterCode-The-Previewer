@@ -6,7 +6,7 @@ import yaml
 
 CI = Path(__file__).resolve().parents[3] / ".gitlab-ci.yml"
 REQUIRED = {"engine:test", "flutter:test", "build:web", "build:android", "review:scan", "review:benchmark",
-            "package:stores", "deploy:cloudrun"}
+            "review:inputs", "package:stores", "deploy:cloudrun"}
 
 
 def config():
@@ -39,3 +39,12 @@ def test_no_secret_values_in_pipeline():
     text = CI.read_text()
     for marker in ("password=", "BEGIN PRIVATE KEY", "apiKey:"):
         assert marker not in text
+
+
+def test_release_branches_validate_inputs_then_package():
+    cfg = config()
+    for job in ("review:inputs", "package:stores"):
+        rules = [r["if"] for r in cfg[job]["rules"]]
+        assert any("store-review" in r for r in rules) and any("CI_COMMIT_TAG" in r for r in rules)
+    assert "review:inputs" in cfg["package:stores"]["needs"]
+    assert any("merge_request_event" in r["if"] for r in cfg["workflow"]["rules"])

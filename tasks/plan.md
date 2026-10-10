@@ -14,7 +14,7 @@ Dependency order is top to bottom unless noted.
 - [x] **T9 Rejection Corpus and benchmark**: at least 36 cases and the `benchmark` command with thresholds. AC: SPEC criterion 4. *Deps: T3, T4*
 - [x] **T10 Repo integration**: add `store/` metadata files (no URLs yet). Integration tests for SPEC criterion 2 (live repo) and criterion 9 (fixes applied in a temp copy). *Deps: T6*
 - [x] **T11 CI**: `.gitlab-ci.yml` with the SPEC criterion 10 jobs, plus a local lint test. *Deps: T6, T9*
-- [ ] **T12 Duo flow and agent prompts**: `.gitlab/duo/flows/store-review.yaml` and `.gitlab/duo/agents/*.md`, checked against GitLab's custom-flow docs. AC: SPEC criterion 11 (static check only). *Deps: T6*
+- [x] **T12 Duo flow and agent prompts**: `.gitlab/duo/flows/store-review.yaml` and `.gitlab/duo/agents/*.md`, checked against GitLab's custom-flow docs. AC: SPEC criterion 11 (static check only). *Deps: T6*
 - [ ] **T13 Cloud Run**: `deploy/cloudrun/{Dockerfile,nginx.conf,deploy.sh}`. AC: `docker build` of the image succeeds with a stub `build/web`. *Deps: none*
 - [ ] **T14 Docs and license**: `docs/STORE_REVIEW.md`, a README section, and a LICENSE line for the new work. AC: SPEC criteria 12 and 13. *Deps: all*
 
