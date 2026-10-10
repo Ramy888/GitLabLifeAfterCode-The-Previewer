@@ -11,7 +11,8 @@ for what only you have, and hands you a package ready to submit for each store. 
    agents for judgement findings. It asks the **fixer** to open one merge request per auto-fixable finding.
 3. The governor posts one note: readiness per store, the fix merge requests, and a checklist of what it needs from you.
 4. You add what it asks for (URLs in `store/listing.yaml`, the demo account as the masked CI/CD variable
-   `STORE_REVIEW_DEMO_LOGIN`, yes/no answers as a reply) and comment `@<service account> resume`.
+   `STORE_REVIEW_DEMO_LOGIN`, yes/no answers as a reply), make any "fixes only you can make" (such as release
+   signing, below), and comment `@<service account> resume`. The note gives the exact account to mention.
 5. The governor validates your inputs. If something is missing it posts a shorter checklist. If everything is in
    place it opens the release merge request on `store-review/<version>`, whose pipeline rebuilds the findings and the
    per-store packages. **Merging it is your approval.** Tag the merge to publish a GitLab Release.
@@ -85,8 +86,39 @@ Rule packs live in `tools/store_review/store_review/rules/*.yaml`. Each rule cit
 | The scans of this repository, every finding and its evidence | Store decisions: the tool never uploads, and only Apple and Google decide |
 | Fix merge requests and the pipelines that prove them | Rejection messages in the demo come from the Rejection Corpus and are labelled as such |
 | The readiness score, computed from the findings by a published formula | The reviewer agents' judgement findings are model output, shown with their confidence |
-| The per-store packages in the GitLab Release | |
+| The per-store packages in the GitLab Release | A signed Android build is proven only once the upload key variables exist; the tests check the gradle text, not a signed AAB |
 | The live web build on Cloud Run | |
+
+## Release signing (a fix only you can make)
+
+`AND-DEBUG-SIGNING` is a manual fix because it involves your upload key. Create an upload keystore, save it as the
+masked CI/CD variables `ANDROID_KEYSTORE_BASE64`, `ANDROID_KEYSTORE_PASSWORD`, `ANDROID_KEY_ALIAS` and
+`ANDROID_KEY_PASSWORD` (the `build:android` job writes `android/key.properties` from them), then point the release
+build at it in `android/app/build.gradle`:
+
+```groovy
+def keystoreProperties = new Properties()
+def keystorePropertiesFile = rootProject.file("key.properties")
+if (keystorePropertiesFile.exists()) {
+    keystoreProperties.load(new FileInputStream(keystorePropertiesFile))
+}
+
+android {
+    signingConfigs {
+        release {
+            keyAlias = keystoreProperties["keyAlias"]
+            keyPassword = keystoreProperties["keyPassword"]
+            storeFile = keystoreProperties["storeFile"] ? file(keystoreProperties["storeFile"]) : null
+            storePassword = keystoreProperties["storePassword"]
+        }
+    }
+    buildTypes {
+        release {
+            signingConfig = signingConfigs.release
+        }
+    }
+}
+```
 
 ## Secrets
 

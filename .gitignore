@@ -104,3 +104,11 @@ android/app/google-services.json
 
 # Firebase hosting
 .firebase/
+# Store review outputs written at the repo root by the flow and CI
+findings*.json
+review-report.md
+handoff.md
+benchmark.json
+dist/store-package/
+android/key.properties
+android/upload-keystore.jks

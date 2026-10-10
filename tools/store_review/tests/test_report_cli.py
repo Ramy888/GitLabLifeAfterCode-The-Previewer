@@ -56,7 +56,35 @@ def test_handoff_lists_only_handoff_items(app, tmp_path, monkeypatch, capsys):
     text = capsys.readouterr().out
     assert "STORE_REVIEW_DEMO_LOGIN" in text and "privacy_policy_url" in text
     assert "AND-TARGETSDK" not in text  # auto-fixable, not a human input
-    assert "@store-review resume" in text
+    assert "@<flow service account> resume" in text
+
+
+def test_handoff_mention_from_flag_and_env(app, tmp_path, monkeypatch, capsys):
+    monkeypatch.delenv("STORE_REVIEW_DEMO_LOGIN", raising=False)
+    out, _ = scan(app, tmp_path, monkeypatch)
+    capsys.readouterr()
+    assert main(["handoff", "--findings", str(out), "--mention", "@ai-store-review-acme"]) == 0
+    assert "`@ai-store-review-acme resume`" in capsys.readouterr().out
+    monkeypatch.setenv("STORE_REVIEW_MENTION", "@ai-from-env")
+    assert main(["handoff", "--findings", str(out)]) == 0
+    assert "`@ai-from-env resume`" in capsys.readouterr().out
+
+
+def test_handoff_lists_manual_blockers_with_recipes(make_app, tmp_path, monkeypatch, capsys):
+    root = make_app({"android/app/build.gradle": "android {\n  buildTypes {\n    release {\n      signingConfig = signingConfigs.debug\n    }\n  }\n}\n",
+                     "store/listing.yaml": "privacy_policy_url: https://e.com/p\n"})
+    out, _ = scan(root, tmp_path, monkeypatch)
+    capsys.readouterr()
+    assert main(["handoff", "--findings", str(out)]) == 0
+    text = capsys.readouterr().out
+    assert "Fixes only you can make" in text and "AND-DEBUG-SIGNING" in text and "upload key" in text
+
+
+def test_headline_pluralises(app, tmp_path, monkeypatch):
+    from store_review.report import headline
+    doc = {"scores": {"ios": {"status": "ready", "readiness": 96, "low": 96, "high": 96, "blockers": 0, "warnings": 1}},
+           "benchmark": None}
+    assert "1 warning ·" in headline("ios", doc) and "0 blockers" in headline("ios", doc)
 
 
 def llm_finding(**over):

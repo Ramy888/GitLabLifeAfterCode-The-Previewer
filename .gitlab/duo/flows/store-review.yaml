@@ -81,19 +81,24 @@ prompts:
         The engine is a CLI. Run it with run_command, program "uv", from the repository root:
           uv run --directory tools/store_review store-review scan --app ../.. --out ../../findings.json --report ../../review-report.md
           uv run --directory tools/store_review store-review benchmark --out ../../benchmark.json
-          uv run --directory tools/store_review store-review merge --findings ../../findings.json --llm ../../findings.llm.json
-          uv run --directory tools/store_review store-review handoff --findings ../../findings.json
+          uv run --directory tools/store_review store-review merge --findings ../../findings.json --llm ../../findings.llm.ios.json
+          uv run --directory tools/store_review store-review merge --findings ../../findings.json --llm ../../findings.llm.android.json
+          uv run --directory tools/store_review store-review handoff --findings ../../findings.json --mention @<your username>
           uv run --directory tools/store_review store-review validate-inputs --app ../..
         findings.json is the source of truth. Readiness scores come only from the engine; never invent a number.
 
         Decide the mode from the goal and the issue:
         1. START (the issue was assigned to you): run benchmark, then scan. Delegate to ios_reviewer and android_reviewer
-           to add judgement findings, then run merge. Delegate to fixer for every finding whose fix.kind is "auto".
+           to add judgement findings, then run merge once per file they wrote. Delegate to fixer for every finding whose fix.kind is "auto".
            Then post ONE issue note with: a table of both stores (status, readiness, band, blockers, warnings),
-           the benchmark line, the fix MRs opened, and the output of the handoff command verbatim.
+           the benchmark line, the fix MRs opened, and the output of the handoff command verbatim. Pass --mention
+           with your own username: you are the issue's assignee (read it with get_issue), so humans can copy the
+           resume command exactly.
            Then stop. Do not wait for the human.
         2. RESUME (the goal contains "resume"): read the issue notes for the human's answers. Write yes/no answers into
-           store/review_notes.yaml under "answers" and any URLs into store/listing.yaml, on a new branch named
+           store/review_notes.yaml under "answers" and any URLs into store/listing.yaml. If the human answered the
+           encryption question, also set ITSAppUsesNonExemptEncryption in ios/Runner/Info.plist (true for yes,
+           false for no). Do all of this on a new branch named
            store-review/<version from pubspec.yaml>. Run validate-inputs. If it exits 3, post its output as a short
            note listing only what is still missing, and stop. If it passes, commit, open a merge request titled
            "Store release <version>: ready to submit", and post a note linking it. Its pipeline rebuilds the
@@ -123,10 +128,10 @@ prompts:
         - 2.3 Accurate Metadata: store/listing.yaml promises features the code does not have.
         - 4.2 Minimum Functionality: the app is a thin wrapper with little native value.
         - 4.8 Login Services and 5.1.1 Privacy, where the static rules are inconclusive.
-        Read lib/, store/ and ios/Runner before deciding. Write your findings to findings.llm.json as
+        Read lib/, store/ and ios/Runner before deciding. Write your findings to findings.llm.ios.json as
         {"findings": [...]} using the findings@1 shape: id (prefix LLM-IOS-), store "ios", layer "reviewer",
         guideline, title, severity, weight 2-10, source "llm", confidence 0-1, evidence (path, line, detail; at least
-        one), fix (kind auto|manual|handoff, recipe). Append to the file if it exists. No evidence, no finding.
+        one), fix (kind auto|manual|handoff, recipe). Overwrite the file. No evidence, no finding.
         Report what you added in two lines.
       user: "Review for the Apple App Store."
     params:
@@ -143,10 +148,10 @@ prompts:
         - Data safety accuracy: what the code really collects (lib/, Firebase usage) versus store/data_safety.yaml.
         - Deceptive or misleading listing text in store/listing.yaml.
         - App access: whether a reviewer can reach every feature with the demo account.
-        Write your findings to findings.llm.json as {"findings": [...]} using the findings@1 shape: id (prefix
+        Write your findings to findings.llm.android.json as {"findings": [...]} using the findings@1 shape: id (prefix
         LLM-AND-), store "android", layer "reviewer", guideline, title, severity, weight 2-10, source "llm",
-        confidence 0-1, evidence (path, line, detail; at least one), fix (kind, recipe). Append to the file if it
-        exists. No evidence, no finding. Report what you added in two lines.
+        confidence 0-1, evidence (path, line, detail; at least one), fix (kind, recipe). Overwrite the file.
+        No evidence, no finding. Report what you added in two lines.
       user: "Review for Google Play."
     params:
       timeout: 300

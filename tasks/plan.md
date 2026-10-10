@@ -18,4 +18,11 @@ Dependency order is top to bottom unless noted.
 - [x] **T13 Cloud Run**: `deploy/cloudrun/{Dockerfile,nginx.conf,deploy.sh}`. AC: `docker build` of the image succeeds with a stub `build/web`. *Deps: none*
 - [x] **T14 Docs and license**: `docs/STORE_REVIEW.md`, a README section, and a LICENSE line for the new work. AC: SPEC criteria 12 and 13. *Deps: all*
 
-Blocked until GitLab access and GCP are available: importing the project into GitLab, running the flow end to end, the real Cloud Run deploy, and recording the video.
+## Bring-up checklist (the hour GitLab access lands)
+- [ ] Create the project in the provisioned group (public, so the MIT license shows in About; BRIEF Q2). Push this repo and make **`store-review` the default branch** (or merge it into `master` first): `.gitlab/duo/agent-config.yml` is read only from the default branch.
+- [ ] AI > Flows > New flow: paste `.gitlab/duo/flows/store-review.yaml`. Enable the **Assign** and **Mention** triggers on the project.
+- [ ] Note the flow's service account (`ai-<flow>-<group>`) and set CI/CD variable `STORE_REVIEW_MENTION` to it.
+- [ ] Set `STORE_REVIEW_DEMO_LOGIN` **masked, not protected** (or protect the `store-review/*` wildcard), so release-MR pipelines can see it.
+- [ ] Check that `python3` and `pip` exist in the default flow image before trusting `setup_script`. If not, switch to `curl -LsSf https://astral.sh/uv/install.sh | sh`.
+- [ ] `FIREBASE_OPTIONS_DART` (base64 of a real `lib/firebase_options.dart`) for the deployed web build; GCP variables plus Workload Identity Federation for `deploy:cloudrun`.
+- [ ] First end-to-end run: Release issue → handoff → resume → release MR → merge → tag → GitLab Release. Record it.

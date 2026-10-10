@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import os
 import sys
 from pathlib import Path
 
@@ -11,7 +12,7 @@ from store_review import inputs
 from store_review.benchmark import run_benchmark
 from store_review.model import SchemaError
 from store_review.package import PackageBlocked, write_package
-from store_review.report import app_info, build_document, merge_llm, render_handoff, render_markdown
+from store_review.report import DEFAULT_MENTION, app_info, build_document, merge_llm, render_handoff, render_markdown
 from store_review.rules import run_checks
 from store_review.snapshot import load_snapshot
 
@@ -54,7 +55,8 @@ def cmd_merge(args: argparse.Namespace) -> int:
 
 
 def cmd_handoff(args: argparse.Namespace) -> int:
-    print(render_handoff(_read_json(args.findings)), end="")
+    mention = args.mention or os.environ.get("STORE_REVIEW_MENTION") or DEFAULT_MENTION
+    print(render_handoff(_read_json(args.findings), mention), end="")
     return 0
 
 
@@ -116,6 +118,7 @@ def build_parser() -> argparse.ArgumentParser:
 
     p = sub.add_parser("handoff", help="Print the checklist of inputs only a human can provide")
     p.add_argument("--findings", default="findings.json")
+    p.add_argument("--mention", help="The flow's service account, e.g. @ai-store-review-mygroup (default: $STORE_REVIEW_MENTION)")
     p.set_defaults(func=cmd_handoff)
 
     p = sub.add_parser("validate-inputs", help="Check the human's inputs before resuming")

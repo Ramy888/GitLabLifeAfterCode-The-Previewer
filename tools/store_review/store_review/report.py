@@ -10,7 +10,7 @@ from store_review.score import score_store
 from store_review.snapshot import AppSnapshot
 
 STORES = {"ios": "Apple App Store", "android": "Google Play"}
-RESUME_COMMAND = "@store-review resume"
+DEFAULT_MENTION = "@<flow service account>"
 
 
 def _input_for(f: Finding) -> dict | None:
@@ -67,11 +67,15 @@ def merge_llm(doc: dict, llm_doc: dict) -> dict:
     return build_document(doc["app"], findings, doc.get("benchmark"))
 
 
+def _count(n: int, word: str) -> str:
+    return f"{n} {word}" if n == 1 else f"{n} {word}s"
+
+
 def headline(store: str, doc: dict) -> str:
     s = doc["scores"][store]
     passed = "" if s["status"] != "ready" else " · ready to package"
-    line = (f"Readiness {s['readiness']} ({s['low']}–{s['high']}) · {s['warnings']} warnings · "
-            f"{s['blockers']} blockers{passed}")
+    line = (f"Readiness {s['readiness']} ({s['low']}–{s['high']}) · {_count(s['warnings'], 'warning')} · "
+            f"{_count(s['blockers'], 'blocker')}{passed}")
     b = doc.get("benchmark")
     if b:
         line += f" · recall {b['recall']:.2f} on {b['cases']} seeded cases"
@@ -93,16 +97,28 @@ def render_markdown(doc: dict) -> str:
     return "\n".join(lines)
 
 
-def render_handoff(doc: dict) -> str:
+def render_handoff(doc: dict, mention: str = DEFAULT_MENTION) -> str:
     items = doc["inputs_required"]
-    if not items:
+    manual = [f for f in doc["findings"] if f["severity"] == "blocker" and f["fix"]["kind"] == "manual"]
+    if not items and not manual:
         return "Nothing needed from you. The review can finish on its own.\n"
-    lines = ["### I need these from you to continue", ""]
+    lines = []
+    if manual:
+        lines += ["### Fixes only you can make", ""]
+        for f in manual:
+            ev = f["evidence"][0]
+            where = f"`{ev['path']}`" + (f":{ev['line']}" if ev.get("line") else "")
+            lines.append(f"- [ ] **{f['id']}** ({where}): {f['fix']['recipe']}.")
+        lines.append("")
+    if not items:
+        lines.append(f"When these are merged, comment `{mention} resume`.")
+        return "\n".join(lines) + "\n"
+    lines += ["### I need these from you to continue", ""]
     for item in items:
         where = {"ci_variable": "Settings > CI/CD > Variables (masked)", "url": "`store/listing.yaml`",
                  "answer": "a reply on this issue"}[item["kind"]]
         lines.append(f"- [ ] **{item['key']}**: {item['ask']}. Put it in {where}. "
                      f"Needed for: {', '.join(STORES[s] for s in item['stores'])}.")
-    lines += ["", f"When everything is in place, comment `{RESUME_COMMAND}`.",
+    lines += ["", f"When everything is in place, comment `{mention} resume`.",
               "Never paste passwords into this issue. I only check that the variable exists."]
     return "\n".join(lines) + "\n"

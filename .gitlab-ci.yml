@@ -132,6 +132,7 @@ package:stores:
   allow_failure:
     exit_codes: [4]
   artifacts:
+    when: always  # keep the unblocked store's package when the other store exits 4
     paths: [dist/store-package]
     expire_in: 90 days
 
