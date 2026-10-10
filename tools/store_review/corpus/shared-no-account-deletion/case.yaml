@@ -1,0 +1,5 @@
+rejection: 'Apple 5.1.1(v): the app supports account creation but not deletion.'
+expected:
+- SHR-ACCOUNT-DELETION
+env:
+  STORE_REVIEW_DEMO_LOGIN: reviewer:demo

@@ -1,0 +1,6 @@
+rejection: 'Apple 5.1.1: camera requested through permission_handler without a purpose
+  string. Known gap: permission_handler declares nothing by itself, so the rule cannot
+  see it.'
+expected:
+- IOS-USAGE-MISSING
+env: {}

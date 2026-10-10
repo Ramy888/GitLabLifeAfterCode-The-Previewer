@@ -1,0 +1,4 @@
+rejection: 'Play Minimum functionality: placeholder content is shown to users.'
+expected:
+- SHR-PLACEHOLDER-UI
+env: {}

@@ -1,0 +1,4 @@
+rejection: 'Apple 5.1.1: location is requested without explaining why.'
+expected:
+- IOS-USAGE-MISSING
+env: {}

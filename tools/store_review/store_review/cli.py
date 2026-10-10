@@ -8,6 +8,7 @@ import sys
 from pathlib import Path
 
 from store_review import inputs
+from store_review.benchmark import run_benchmark
 from store_review.model import SchemaError
 from store_review.package import PackageBlocked, write_package
 from store_review.report import app_info, build_document, merge_llm, render_handoff, render_markdown
@@ -17,6 +18,8 @@ from store_review.snapshot import load_snapshot
 EXIT_SCHEMA = 2
 EXIT_INPUTS = 3
 EXIT_BLOCKED = 4
+EXIT_BENCHMARK = 5
+DEFAULT_CORPUS = Path(__file__).resolve().parent.parent / "corpus"
 
 
 def _read_json(path: str) -> dict:
@@ -29,7 +32,8 @@ def _write_json(path: str, doc: dict) -> None:
 
 def cmd_scan(args: argparse.Namespace) -> int:
     snap = load_snapshot(args.app)
-    doc = build_document(app_info(snap), run_checks(snap))
+    benchmark = _read_json(args.benchmark) if args.benchmark else None
+    doc = build_document(app_info(snap), run_checks(snap), benchmark)
     _write_json(args.out, doc)
     if args.report:
         Path(args.report).write_text(render_markdown(doc))
@@ -79,9 +83,18 @@ def cmd_package(args: argparse.Namespace) -> int:
     return 0
 
 
-def _not_yet(args: argparse.Namespace) -> int:
-    print(f"{args.command}: not implemented yet", file=sys.stderr)
-    return 1
+def cmd_benchmark(args: argparse.Namespace) -> int:
+    result = run_benchmark(args.corpus)
+    if args.out:
+        _write_json(args.out, result)
+    print(f"{result['cases']} cases: precision {result['precision']:.3f}, recall {result['recall']:.3f} "
+          f"(tp {result['tp']}, fp {result['fp']}, fn {result['fn']})")
+    for m in result["misses"]:
+        print(f"  {m['case']}: missed {m['missed']} extra {m['extra']}")
+    if result["precision"] < args.min_precision or result["recall"] < args.min_recall:
+        print(f"benchmark below threshold (precision >= {args.min_precision}, recall >= {args.min_recall})", file=sys.stderr)
+        return EXIT_BENCHMARK
+    return 0
 
 
 def build_parser() -> argparse.ArgumentParser:
@@ -92,6 +105,7 @@ def build_parser() -> argparse.ArgumentParser:
     p.add_argument("--app", default=".", help="Flutter app root")
     p.add_argument("--out", default="findings.json")
     p.add_argument("--report", help="Also write a Markdown report here")
+    p.add_argument("--benchmark", help="benchmark.json to show next to the score")
     p.set_defaults(func=cmd_scan)
 
     p = sub.add_parser("merge", help="Merge reviewer-agent findings into findings.json")
@@ -115,8 +129,12 @@ def build_parser() -> argparse.ArgumentParser:
     p.add_argument("--out", default="dist/store-package")
     p.set_defaults(func=cmd_package)
 
-    for name, help_text in (("benchmark", "Score the deterministic rules against the Rejection Corpus"),):
-        sub.add_parser(name, help=help_text).set_defaults(func=_not_yet)
+    p = sub.add_parser("benchmark", help="Score the deterministic rules against the Rejection Corpus")
+    p.add_argument("--corpus", default=str(DEFAULT_CORPUS))
+    p.add_argument("--out", help="Write benchmark.json here")
+    p.add_argument("--min-precision", type=float, default=0.90)
+    p.add_argument("--min-recall", type=float, default=0.85)
+    p.set_defaults(func=cmd_benchmark)
     return parser
 
 

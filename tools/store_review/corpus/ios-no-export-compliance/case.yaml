@@ -1,0 +1,4 @@
+rejection: Missing export compliance information for the build.
+expected:
+- IOS-ENCRYPTION-FLAG
+env: {}

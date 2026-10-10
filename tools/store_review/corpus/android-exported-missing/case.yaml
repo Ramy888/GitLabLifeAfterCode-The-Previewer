@@ -1,0 +1,5 @@
+rejection: 'Upload error: android:exported must be set for components with intent
+  filters.'
+expected:
+- AND-EXPORTED
+env: {}

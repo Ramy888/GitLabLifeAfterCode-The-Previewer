@@ -1,0 +1,5 @@
+rejection: 'Play Data safety: the app collects photos but the form says no data is
+  collected.'
+expected:
+- AND-DATASAFETY-PERM
+env: {}

@@ -1,0 +1,6 @@
+rejection: 'Apple: several issues found in this build.'
+expected:
+- IOS-USAGE-MISSING
+- IOS-ENCRYPTION-FLAG
+- IOS-ATS-ARBITRARY
+env: {}

@@ -1,0 +1,4 @@
+rejection: 'Apple 4.8: the app uses a third-party login without an equivalent option.'
+expected:
+- IOS-SIWA
+env: {}

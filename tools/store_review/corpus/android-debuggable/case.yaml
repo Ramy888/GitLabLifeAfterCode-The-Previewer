@@ -1,0 +1,4 @@
+rejection: 'Play: the release build is debuggable.'
+expected:
+- AND-DEBUGGABLE
+env: {}

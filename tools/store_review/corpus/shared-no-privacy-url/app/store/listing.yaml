@@ -1,0 +1,7 @@
+account_deletion_url: https://example.com/delete
+android:
+  description: Track your time.
+  name: Demo
+ios:
+  description: Track your time.
+  name: Demo

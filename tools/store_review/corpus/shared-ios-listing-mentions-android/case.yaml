@@ -1,0 +1,4 @@
+rejection: 'Apple 2.3.10: the description references another platform.'
+expected:
+- SHR-METADATA-PLATFORM
+env: {}

@@ -1,0 +1,4 @@
+rejection: 'Play security: cleartext traffic is allowed for all hosts.'
+expected:
+- AND-CLEARTEXT
+env: {}

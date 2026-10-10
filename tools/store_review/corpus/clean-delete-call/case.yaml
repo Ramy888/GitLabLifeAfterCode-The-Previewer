@@ -1,0 +1,4 @@
+rejection: Clean account app that deletes the user in code.
+expected: []
+env:
+  STORE_REVIEW_DEMO_LOGIN: reviewer:demo

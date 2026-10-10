@@ -1,0 +1,6 @@
+rejection: 'Play: several policy issues found in this release.'
+expected:
+- AND-TARGETSDK
+- AND-DATASAFETY-PERM
+- SHR-PLACEHOLDER-UI
+env: {}

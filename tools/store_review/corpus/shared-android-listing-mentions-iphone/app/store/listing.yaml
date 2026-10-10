@@ -1,0 +1,8 @@
+account_deletion_url: https://example.com/delete
+android:
+  description: Best on iPhone.
+  name: Demo
+ios:
+  description: Track your time.
+  name: Demo
+privacy_policy_url: https://example.com/privacy

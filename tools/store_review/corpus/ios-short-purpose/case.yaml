@@ -1,0 +1,4 @@
+rejection: 'Apple 5.1.1: the purpose string ''Camera'' is not sufficient.'
+expected:
+- IOS-USAGE-PLACEHOLDER
+env: {}

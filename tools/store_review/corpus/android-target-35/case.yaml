@@ -1,0 +1,4 @@
+rejection: 'Play: target API level 35 is below the current requirement.'
+expected:
+- AND-TARGETSDK
+env: {}

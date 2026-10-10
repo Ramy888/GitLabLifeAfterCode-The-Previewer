@@ -1,0 +1,1 @@
+await Permission.camera.request();

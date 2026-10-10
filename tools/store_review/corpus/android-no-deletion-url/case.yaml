@@ -1,0 +1,5 @@
+rejection: 'Play User Data: provide a web link where users can request account deletion.'
+expected:
+- AND-DELETION-URL
+env:
+  STORE_REVIEW_DEMO_LOGIN: reviewer:demo

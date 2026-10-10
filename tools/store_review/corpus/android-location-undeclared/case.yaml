@@ -1,0 +1,4 @@
+rejection: 'Play Data safety: location access is not disclosed.'
+expected:
+- AND-DATASAFETY-PERM
+env: {}

@@ -1,0 +1,5 @@
+rejection: 'Wrong rejection: ''Apple 5.1.1(v), account deletion missing.'' FirebaseUI''s
+  ProfileScreen renders a Delete account button, so the right response is an appeal.'
+expected: []
+env:
+  STORE_REVIEW_DEMO_LOGIN: reviewer:demo

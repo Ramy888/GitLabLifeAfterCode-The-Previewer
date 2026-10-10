@@ -1,0 +1,4 @@
+rejection: 'Apple 2.1: we could not sign in; please provide a demo account.'
+expected:
+- SHR-DEMO-LOGIN
+env: {}

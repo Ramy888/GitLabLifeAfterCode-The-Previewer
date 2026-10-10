@@ -1,0 +1,4 @@
+rejection: 'ITMS-91053: reason C617.1 is not valid for UserDefaults.'
+expected:
+- IOS-PRIVACY-REASON
+env: {}

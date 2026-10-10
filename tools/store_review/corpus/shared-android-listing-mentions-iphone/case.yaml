@@ -1,0 +1,4 @@
+rejection: 'Play: the listing references another platform''s devices.'
+expected:
+- SHR-METADATA-PLATFORM
+env: {}

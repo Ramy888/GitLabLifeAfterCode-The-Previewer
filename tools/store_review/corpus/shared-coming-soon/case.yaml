@@ -1,0 +1,4 @@
+rejection: 'Apple 2.1: the app shows features marked ''coming soon''.'
+expected:
+- SHR-PLACEHOLDER-UI
+env: {}

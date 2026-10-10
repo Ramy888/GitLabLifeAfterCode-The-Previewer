@@ -1,0 +1,4 @@
+rejection: 'Apple 5.1.1(i): the app is missing a privacy policy link.'
+expected:
+- SHR-PRIVACY-URL
+env: {}

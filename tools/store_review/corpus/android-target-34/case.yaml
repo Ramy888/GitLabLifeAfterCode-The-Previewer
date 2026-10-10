@@ -1,0 +1,4 @@
+rejection: 'Play: your app must target API level 36 or higher.'
+expected:
+- AND-TARGETSDK
+env: {}

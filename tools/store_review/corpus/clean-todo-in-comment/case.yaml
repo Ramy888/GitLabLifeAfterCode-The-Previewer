@@ -1,0 +1,3 @@
+rejection: Clean app with a TODO only in a code comment.
+expected: []
+env: {}

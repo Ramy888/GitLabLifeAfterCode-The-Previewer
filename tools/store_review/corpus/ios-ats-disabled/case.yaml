@@ -1,0 +1,4 @@
+rejection: 'Apple 2.5: App Transport Security is disabled globally without justification.'
+expected:
+- IOS-ATS-ARBITRARY
+env: {}

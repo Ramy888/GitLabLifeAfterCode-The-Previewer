@@ -1,0 +1,6 @@
+rejection: 'Not a rejection: the app deletes accounts through a custom API call. Known
+  gap: the rule does not recognise removeMyProfile() as deletion and reports a false
+  positive.'
+expected: []
+env:
+  STORE_REVIEW_DEMO_LOGIN: reviewer:demo

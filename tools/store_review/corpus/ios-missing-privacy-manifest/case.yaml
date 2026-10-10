@@ -1,0 +1,4 @@
+rejection: 'ITMS-91053: missing API declaration for UserDefaults.'
+expected:
+- IOS-PRIVACY-MANIFEST
+env: {}

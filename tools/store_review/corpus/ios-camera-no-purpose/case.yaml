@@ -1,0 +1,4 @@
+rejection: 'Apple 5.1.1: the app accesses the camera without a purpose string.'
+expected:
+- IOS-USAGE-MISSING
+env: {}

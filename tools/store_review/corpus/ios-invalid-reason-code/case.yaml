@@ -1,0 +1,4 @@
+rejection: 'ITMS-91053: invalid reason code in the privacy manifest.'
+expected:
+- IOS-PRIVACY-REASON
+env: {}
