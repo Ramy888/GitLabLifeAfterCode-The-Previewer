@@ -4,7 +4,7 @@ Each task is RED → GREEN → full suite → commit. Status: [ ] pending · [x]
 Dependency order is top to bottom unless noted.
 
 - [x] **T1 Scaffold** (`tools/store_review`): uv project, `store-review` CLI entry, the `Finding` model plus schema validation. AC: `uv run pytest` green, `store-review --help` works.
-- [ ] **T2 Snapshot parsers**: pubspec.yaml/lock, Info.plist, PrivacyInfo.xcprivacy, AndroidManifest.xml, gradle targetSdk, `store/*.yaml`, Dart string literals. AC: parser unit tests on fixtures. *Deps: T1*
+- [x] **T2 Snapshot parsers**: pubspec.yaml/lock, Info.plist, PrivacyInfo.xcprivacy, AndroidManifest.xml, gradle targetSdk, `store/*.yaml`, Dart string literals. AC: parser unit tests on fixtures. *Deps: T1*
 - [ ] **T3 iOS rules**: rule pack `ios.yaml` and checks IOS-USAGE-MISSING, IOS-USAGE-PLACEHOLDER, IOS-PRIVACY-MANIFEST, IOS-PRIVACY-REASON, IOS-ENCRYPTION-FLAG, IOS-ATS-ARBITRARY, IOS-SIWA. AC: one positive and one negative test per rule. *Deps: T2*
 - [ ] **T4 Android + shared rules**: AND-TARGETSDK, AND-DELETION-URL, AND-DATASAFETY-PERM, AND-CLEARTEXT, AND-DEBUGGABLE, AND-EXPORTED, SHR-ACCOUNT-DELETION (FirebaseUI ProfileScreen evidence), SHR-DEMO-LOGIN, SHR-PRIVACY-URL, SHR-PLACEHOLDER-UI, SHR-METADATA-PLATFORM. AC: one positive and one negative test per rule. *Deps: T2*
 - [ ] **T5 Score**: gated readiness and band per store. AC: SPEC criterion 5. *Deps: T1*
