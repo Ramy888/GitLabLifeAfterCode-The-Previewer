@@ -20,6 +20,7 @@ class JobsScreen extends StatelessWidget {
         actions: <Widget>[
           IconButton(
             icon: const Icon(Icons.add, color: Colors.white),
+            tooltip: 'Add job',
             onPressed: () => context.goNamed(AppRoute.addJob.name),
           ),
         ],
@@ -33,7 +34,9 @@ class JobsScreen extends StatelessWidget {
           final jobsQuery = ref.watch(jobsQueryProvider);
           return FirestoreListView<Job>(
             query: jobsQuery,
-            emptyBuilder: (context) => const Center(child: Text('No data')),
+            emptyBuilder: (context) => const Center(
+              child: Text('No jobs yet. Tap + to add your first job.'),
+            ),
             errorBuilder: (context, error, stackTrace) => Center(
               child: Text(error.toString()),
             ),
