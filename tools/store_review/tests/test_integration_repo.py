@@ -1,6 +1,7 @@
 """SPEC criteria 2 and 9 against the real Path B app in this repository."""
 
 import plistlib
+import re
 import shutil
 from pathlib import Path
 
@@ -19,8 +20,30 @@ def scan(root, env):
     return findings, build_document({"name": "x", "version": "1"}, findings)
 
 
-def test_live_repo_findings_match_spec():
-    findings, doc = scan(REPO, env={})
+def copy_app(dst):
+    for rel in COPY:
+        src, out = REPO / rel, dst / rel
+        out.parent.mkdir(parents=True, exist_ok=True)
+        (shutil.copytree if src.is_dir() else shutil.copy)(src, out)
+    return dst
+
+
+def with_known_defects(root):
+    # The fix MRs repair these in the live app; re-apply them so this stays a detection test on the real code.
+    gradle = root / "android/app/build.gradle"
+    text = re.sub(r"targetSdk\s*=\s*\S+", "targetSdk = 34", gradle.read_text())
+    gradle.write_text(re.sub(r"signingConfig\s*=\s*signingConfigs\.\w+", "signingConfig = signingConfigs.debug", text))
+    (root / "ios/Runner/PrivacyInfo.xcprivacy").unlink(missing_ok=True)
+    listing_path = root / "store/listing.yaml"
+    listing = yaml.safe_load(listing_path.read_text()) or {}
+    for key in ("privacy_policy_url", "account_deletion_url"):
+        listing.pop(key, None)
+    listing_path.write_text(yaml.safe_dump(listing))
+    return root
+
+
+def test_live_repo_findings_match_spec(tmp_path):
+    findings, doc = scan(with_known_defects(copy_app(tmp_path)), env={})
     by_id = {f.id: f.severity for f in findings}
     for rid in ("AND-TARGETSDK", "AND-DEBUG-SIGNING", "AND-DELETION-URL", "SHR-DEMO-LOGIN", "SHR-PRIVACY-URL"):
         assert by_id.get(rid) == "blocker", rid
@@ -31,13 +54,10 @@ def test_live_repo_findings_match_spec():
 
 
 def test_fixes_clear_every_blocker(tmp_path):
-    for rel in COPY:
-        src, dst = REPO / rel, tmp_path / rel
-        dst.parent.mkdir(parents=True, exist_ok=True)
-        (shutil.copytree if src.is_dir() else shutil.copy)(src, dst)
+    copy_app(tmp_path)
     gradle = tmp_path / "android/app/build.gradle"
-    gradle.write_text(gradle.read_text().replace("targetSdk = 34", "targetSdk = 36")
-                      .replace("signingConfig = signingConfigs.debug", "signingConfig = signingConfigs.release"))
+    text = re.sub(r"targetSdk\s*=\s*\S+", "targetSdk = 36", gradle.read_text())
+    gradle.write_text(re.sub(r"signingConfig\s*=\s*signingConfigs\.\w+", "signingConfig = signingConfigs.release", text))
     plist_path = tmp_path / "ios/Runner/Info.plist"
     info = plistlib.loads(plist_path.read_bytes())
     info["ITSAppUsesNonExemptEncryption"] = False
