@@ -2,4 +2,5 @@
 account_deletion_path: Account tab > Profile > Delete account
 notes:
   - Sign in with the demo account, open Jobs, create a job, then add entries to see the totals.
-answers: {}
+answers:
+  uses_non_exempt_encryption: 'no'
