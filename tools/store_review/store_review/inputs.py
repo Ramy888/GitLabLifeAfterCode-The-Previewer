@@ -33,18 +33,34 @@ def _check(item: dict, snap: AppSnapshot, fetch: Fetch) -> str | None:
             return "not set in store/listing.yaml"
         try:
             status = fetch(url)
-        except Exception as err:  # network errors become a reported problem, not a crash
+        except OSError as err:  # URLError, proxy refusals and timeouts: the page was never reached
+            raise Unreachable(f"{url} could not be fetched ({getattr(err, 'reason', err)})") from err
+        except Exception as err:  # anything else becomes a reported problem, not a crash
             return f"{url} could not be fetched ({err})"
         return None if status == 200 else f"{url} returned HTTP {status}"
     answer = str((snap.store["review_notes"].get("answers") or {}).get(key, "")).strip().lower()
     return None if answer in ANSWERS else "no yes/no answer in store/review_notes.yaml"
 
 
-def validate_inputs(items: list[dict], snap: AppSnapshot, fetch: Fetch | None = None) -> list[dict]:
+class Unreachable(Exception):
+    """A URL input that could not be reached at all (no HTTP status), as opposed to one that answered badly."""
+
+
+def validate_inputs(items: list[dict], snap: AppSnapshot, fetch: Fetch | None = None,
+                    unreachable: list[dict] | None = None) -> list[dict]:
+    """Return the problems. When `unreachable` is a list, URLs that could not be reached go there instead,
+    for callers (Duo flow sessions behind a proxy) that defer the network check to the release pipeline."""
     fetch = fetch or http_status
     problems = []
     for item in items:
-        problem = _check(item, snap, fetch)
+        try:
+            problem = _check(item, snap, fetch)
+        except Unreachable as err:
+            if unreachable is None:
+                problems.append({**item, "problem": str(err)})
+            else:
+                unreachable.append({**item, "problem": str(err)})
+            continue
         if problem:
             problems.append({**item, "problem": problem})
     return problems

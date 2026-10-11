@@ -112,3 +112,32 @@ def test_validate_inputs_retry_line_uses_the_configured_mention(make_app, monkey
     assert main(["validate-inputs", "--app", str(app), "--skip-ci-variables"]) == 3
     out = capsys.readouterr().out
     assert "`@ai-from-env resume`" in out and "@store-review resume" not in out
+
+
+def _unreachable(url):
+    import urllib.error
+
+    raise urllib.error.URLError("Tunnel connection failed: 403 Forbidden")
+
+
+def test_flow_session_defers_unreachable_urls_to_the_release_pipeline(make_app, monkeypatch, capsys):
+    # Duo flow sessions reach the internet through a proxy that may refuse the app's host.
+    app = make_app({"pubspec.yaml": "name: demo\nversion: 1.0.0\n", "store/listing.yaml": LISTING})
+    monkeypatch.setattr("store_review.inputs.http_status", _unreachable)
+    assert main(["validate-inputs", "--app", str(app), "--skip-ci-variables"]) == 0
+    out = capsys.readouterr().out
+    assert "privacy_policy_url" in out and "could not reach" in out and "release pipeline" in out
+
+
+def test_flow_session_still_fails_on_a_real_http_error(make_app, monkeypatch, capsys):
+    app = make_app({"pubspec.yaml": "name: demo\nversion: 1.0.0\n", "store/listing.yaml": LISTING})
+    monkeypatch.setattr("store_review.inputs.http_status", lambda url: 404)
+    assert main(["validate-inputs", "--app", str(app), "--skip-ci-variables"]) == 3
+    assert "HTTP 404" in capsys.readouterr().out
+
+
+def test_pipeline_mode_fails_on_unreachable_urls(make_app, monkeypatch, capsys):
+    app = make_app({"pubspec.yaml": "name: demo\nversion: 1.0.0\n", "store/listing.yaml": LISTING})
+    monkeypatch.setattr("store_review.inputs.http_status", _unreachable)
+    assert main(["validate-inputs", "--app", str(app)]) == 3
+    assert "could not be fetched" in capsys.readouterr().out
