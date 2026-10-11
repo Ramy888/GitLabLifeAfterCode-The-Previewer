@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:starter_architecture_flutter_firebase/src/constants/app_sizes.dart';
 import 'package:starter_architecture_flutter_firebase/src/features/authentication/data/firebase_auth_repository.dart';
+import 'package:starter_architecture_flutter_firebase/src/utils/alert_dialogs.dart';
 
 import 'auth_providers.dart';
 
@@ -43,7 +44,19 @@ class SignInAnonymouslyFooter extends ConsumerWidget {
           ],
         ),
         TextButton(
-          onPressed: () => ref.read(firebaseAuthProvider).signInAnonymously(),
+          onPressed: () async {
+            try {
+              await ref.read(firebaseAuthProvider).signInAnonymously();
+            } catch (e) {
+              if (context.mounted) {
+                await showExceptionAlertDialog(
+                  context: context,
+                  title: 'Error',
+                  exception: e,
+                );
+              }
+            }
+          },
           child: const Text('Sign in anonymously'),
         ),
       ],
