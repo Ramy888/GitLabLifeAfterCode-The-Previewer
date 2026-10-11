@@ -118,9 +118,13 @@ def render_handoff(doc: dict, mention: str = DEFAULT_MENTION) -> str:
         return "\n".join(lines) + "\n"
     lines += ["### I need these from you to continue", ""]
     for item in items:
-        where = {"ci_variable": "Settings > CI/CD > Variables (masked)", "url": "`store/listing.yaml`",
-                 "answer": "a reply on this issue"}[item["kind"]]
-        lines.append(f"- [ ] **{item['key']}**: {item['ask']}. Put it in {where}. "
+        if item["kind"] == "ci_variable":
+            # Flow sessions cannot see CI/CD variables, so ask for confirmation; the release pipeline checks it.
+            where = ("Tick this if it is already set; otherwise add it in Settings > CI/CD > Variables (masked). "
+                     "The release pipeline checks it")
+        else:
+            where = "Put it in " + {"url": "`store/listing.yaml`", "answer": "a reply on this issue"}[item["kind"]]
+        lines.append(f"- [ ] **{item['key']}**: {item['ask']}. {where}. "
                      f"Needed for: {', '.join(STORES[s] for s in item['stores'])}.")
     lines += ["", f"When everything is in place, comment `{mention} resume`.",
               "Never paste passwords into this issue. I only check that the variable exists."]

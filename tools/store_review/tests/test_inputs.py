@@ -103,3 +103,12 @@ def test_skip_ci_variables_for_flow_runtime(make_app, monkeypatch, capsys):
     monkeypatch.setattr("store_review.inputs.http_status", ok_fetch)
     assert main(["validate-inputs", "--app", str(app), "--skip-ci-variables"]) == 0
     assert "checked by the release pipeline" in capsys.readouterr().out
+
+
+def test_validate_inputs_retry_line_uses_the_configured_mention(make_app, monkeypatch, capsys):
+    app = make_app({"pubspec.yaml": "name: demo\nversion: 1.0.0\n", "store/listing.yaml": ""})
+    monkeypatch.setattr("store_review.inputs.http_status", ok_fetch)
+    monkeypatch.setenv("STORE_REVIEW_MENTION", "@ai-from-env")
+    assert main(["validate-inputs", "--app", str(app), "--skip-ci-variables"]) == 3
+    out = capsys.readouterr().out
+    assert "`@ai-from-env resume`" in out and "@store-review resume" not in out

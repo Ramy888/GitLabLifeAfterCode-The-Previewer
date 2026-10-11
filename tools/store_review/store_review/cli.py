@@ -54,9 +54,12 @@ def cmd_merge(args: argparse.Namespace) -> int:
     return 0
 
 
+def _mention(flag: str | None = None) -> str:
+    return flag or os.environ.get("STORE_REVIEW_MENTION") or DEFAULT_MENTION
+
+
 def cmd_handoff(args: argparse.Namespace) -> int:
-    mention = args.mention or os.environ.get("STORE_REVIEW_MENTION") or DEFAULT_MENTION
-    print(render_handoff(_read_json(args.findings), mention), end="")
+    print(render_handoff(_read_json(args.findings), _mention(args.mention)), end="")
     return 0
 
 
@@ -77,7 +80,7 @@ def cmd_validate_inputs(args: argparse.Namespace) -> int:
     for p in problems:
         print(f"- [ ] **{p['key']}**: {p['problem']}. {p['ask']}.")
     print()
-    print("Fix these, then comment `@store-review resume` again.")
+    print(f"Fix these, then comment `{_mention()} resume` again.")
     return EXIT_INPUTS
 
 

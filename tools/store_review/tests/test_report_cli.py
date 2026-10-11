@@ -134,3 +134,15 @@ def test_merge_bad_json_returns_schema_exit(app, tmp_path, monkeypatch):
     llm = tmp_path / "llm.json"
     llm.write_text("{not json")
     assert main(["merge", "--findings", str(out), "--llm", str(llm)]) == 2
+
+
+def test_handoff_asks_to_confirm_ci_variables_instead_of_calling_them_missing(app, tmp_path, monkeypatch, capsys):
+    # A flow session cannot see CI/CD variables, so the handoff must not claim one is missing.
+    out, _ = scan(app, tmp_path, monkeypatch)
+    capsys.readouterr()
+    assert main(["handoff", "--findings", str(out)]) == 0
+    text = capsys.readouterr().out
+    demo = next(line for line in text.splitlines() if "STORE_REVIEW_DEMO_LOGIN" in line)
+    assert "already set" in demo and "Put it in" not in demo
+    privacy = next(line for line in text.splitlines() if "**privacy_policy_url**" in line)
+    assert "Put it in `store/listing.yaml`" in privacy
