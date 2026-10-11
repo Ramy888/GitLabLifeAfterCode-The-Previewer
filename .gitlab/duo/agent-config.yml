@@ -1,7 +1,26 @@
 # Runtime setup for Duo flows in this project (read from the default branch only).
 # Installs the store-review engine so agents can run `uv run store-review ...` from the repo root.
+# The flow image ships python3 without pip (and maybe without curl), so the pinned uv binary is fetched
+# with python3 alone and placed in the first writable PATH directory, so later agent commands find it.
 setup_script:
-  - python3 -m pip install --quiet uv==0.11.3
+  - |
+    set -e
+    DIR=""; for d in $(echo "$PATH" | tr ':' ' '); do if [ -d "$d" ] && [ -w "$d" ]; then DIR="$d"; break; fi; done
+    DIR="${DIR:-$HOME/.local/bin}"; mkdir -p "$DIR"
+    python3 - "$DIR" <<'PY'
+    import io, platform, sys, tarfile, urllib.request
+    arch = {"x86_64": "x86_64", "amd64": "x86_64", "aarch64": "aarch64", "arm64": "aarch64"}[platform.machine().lower()]
+    url = f"https://github.com/astral-sh/uv/releases/download/0.11.3/uv-{arch}-unknown-linux-gnu.tar.gz"
+    data = urllib.request.urlopen(urllib.request.Request(url, headers={"User-Agent": "store-review-setup"})).read()
+    with tarfile.open(fileobj=io.BytesIO(data)) as tar:
+        for member in tar.getmembers():
+            if member.name.endswith("/uv") or member.name.endswith("/uvx"):
+                member.name = member.name.rsplit("/", 1)[1]
+                tar.extract(member, sys.argv[1], **({"filter": "data"} if hasattr(tarfile, "data_filter") else {}))
+    PY
+    export PATH="$DIR:$PATH"
+    for rc in "$HOME/.profile" "$HOME/.bashrc"; do echo "export PATH=\"$DIR:\$PATH\"" >> "$rc"; done
+    echo "uv in $DIR: $(uv --version)"
   - cd tools/store_review && uv sync --quiet && cd -
   - uv run --directory tools/store_review store-review --help > /dev/null
 
