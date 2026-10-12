@@ -8,7 +8,7 @@ import os
 import sys
 from pathlib import Path
 
-from store_review import inputs
+from store_review import inputs, notify
 from store_review.benchmark import run_benchmark
 from store_review.model import SchemaError
 from store_review.package import PackageBlocked, write_package
@@ -133,6 +133,19 @@ def cmd_benchmark(args: argparse.Namespace) -> int:
     return 0
 
 
+def cmd_notify(args: argparse.Namespace) -> int:
+    subject, text, html = notify.render_release_email(_read_json(args.findings), args.release_url)
+    if args.html_out:
+        Path(args.html_out).write_text(html)
+    if not args.to:
+        print(subject)
+        return 0
+    result = notify.send(subject, text, html, args.to, args.sender).get("result") or {}
+    outcome = {k: result.get(k) for k in ("delivered", "queued", "permanent_bounces", "suppressed_recipients") if result.get(k)}
+    print(f"sent: {subject} -> {outcome or 'accepted'}")
+    return 0 if not (result.get("permanent_bounces") or result.get("suppressed_recipients")) else 1
+
+
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(prog="store-review", description=__doc__)
     sub = parser.add_subparsers(dest="command", required=True, metavar="command")
@@ -167,6 +180,14 @@ def build_parser() -> argparse.ArgumentParser:
     p.add_argument("--app", default=".")
     p.add_argument("--out", default="dist/store-package")
     p.set_defaults(func=cmd_package)
+
+    p = sub.add_parser("notify", help="Render (and optionally send) the release email")
+    p.add_argument("--findings", default="findings.json")
+    p.add_argument("--release-url", required=True)
+    p.add_argument("--html-out", help="Also write the HTML to this file (preview)")
+    p.add_argument("--to", help="Send to this address through Cloudflare Email Sending")
+    p.add_argument("--sender", default="The Previewer <support@thepreviwer.dev>")
+    p.set_defaults(func=cmd_notify)
 
     p = sub.add_parser("benchmark", help="Score the deterministic rules against the Rejection Corpus")
     p.add_argument("--corpus", default=str(DEFAULT_CORPUS))
