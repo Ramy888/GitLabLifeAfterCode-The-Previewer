@@ -43,3 +43,5 @@ so the Account tab gets its own screen.
 - [x] AC5: `/delete-account` no longer tells users to delete jobs first.
 - [x] AC6: Unit tests prove the order (data, then account) and the retry path; a live check with a throwaway Auth user (never
       the reviewer account) proves the Firestore documents are gone.
+      Live check done with an anonymous user (2 jobs, 3 entries, then 0 and no Auth user). The email-user
+      `requires-recent-login` re-auth path has widget-test coverage only.

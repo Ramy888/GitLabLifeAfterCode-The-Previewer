@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
@@ -8,6 +10,8 @@ import '../../../mocks.dart';
 class MockUserDataStore extends Mock implements UserDataStore {}
 
 void main() {
+  collectionsGuard();
+
   late MockFirebaseAuth auth;
   late MockUser user;
   late MockUserDataStore data;
@@ -54,5 +58,25 @@ void main() {
     when(() => auth.currentUser).thenReturn(null);
     await expectLater(service.deleteAccount(), throwsStateError);
     verifyNever(() => data.deleteAllUserData(any()));
+  });
+}
+
+// Firestore clients can't list subcollections, so the deletion list is written by hand. This guard fails the day a
+// repository starts writing a new collection under users/{uid} that account deletion would leave behind.
+void collectionsGuard() {
+  test('account deletion covers every collection the repositories write under users/{uid}', () {
+    final pathPattern = RegExp(r"'users/\$uid/(\w+)'");
+    final written = <String>{};
+    for (final file in Directory('lib').listSync(recursive: true).whereType<File>()) {
+      if (!file.path.endsWith('_repository.dart')) continue;
+      final code = file
+          .readAsStringSync()
+          .replaceAll(RegExp(r'/\*[\s\S]*?\*/'), '')
+          .replaceAll(RegExp(r'//[^\n]*'), '');
+      written.addAll(pathPattern.allMatches(code).map((m) => m.group(1)!));
+    }
+    final deleted = FirestoreUserDataStore.collectionsOf('uid').map((p) => p.split('/').last).toSet();
+    expect(written, isNotEmpty);
+    expect(deleted, containsAll(written));
   });
 }

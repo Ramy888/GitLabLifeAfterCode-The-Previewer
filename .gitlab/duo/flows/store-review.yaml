@@ -59,6 +59,7 @@ components:
       - "run_command"
       - "read_file"
       - "edit_file"
+      - "create_file_with_contents"
       - "create_branch"
       - "create_commit"
       - "create_merge_request"
@@ -97,9 +98,10 @@ prompts:
            store-review/<version from pubspec.yaml>. Run validate-inputs with --skip-ci-variables (this session
            cannot see CI/CD variables; the release MR pipeline checks STORE_REVIEW_DEMO_LOGIN). If it exits 3, post its output as a short
            note listing only what is still missing, and stop. If it passes, delegate to ios_reviewer and android_reviewer
-           again (the fixes have landed since the first pass), and save their files as store/review/judgement.ios.json and
-           store/review/judgement.android.json with a top-level "version" set to the pubspec version (scan ignores
-           judgement written for another version). Run scan: it merges those files, so its readiness includes their judgement.
+           again (the fixes have landed since the first pass). Write their findings with create_file_with_contents to
+           store/review/judgement.ios.json and store/review/judgement.android.json as
+           {"version": "<pubspec version>", "findings": [...]}. Run scan and check its output says "merged reviewer
+           judgement" for both files; if it says "skipped", the version is wrong: fix the file and scan again.
            Commit everything, open a merge request titled "Store release <version>: ready to submit" whose description
            has both stores' status, readiness and band from that scan, and post a note linking it. Its pipeline rebuilds
            the findings (with the committed judgement) and the per-store packages; merging it is the human's approval
