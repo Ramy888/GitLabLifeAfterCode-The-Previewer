@@ -36,7 +36,9 @@ void main() {
     await tester.tap(find.byKey(DeleteAccountAndDataButton.buttonKey));
     await tester.pumpAndSettle();
     await tester.tap(find.widgetWithText(TextButton, choice));
-    await tester.pumpAndSettle();
+    // Not pumpAndSettle: the button's progress indicator animates while a follow-up dialog is open.
+    await tester.pump();
+    await tester.pump(const Duration(seconds: 1));
   }
 
   testWidgets('the confirm dialog says the jobs and entries are deleted first', (tester) async {
@@ -78,5 +80,8 @@ void main() {
     await tapDeleteThen(tester, 'Delete');
     expect(reauthCalls, 1);
     verify(() => service.deleteAccount()).called(1);
+    // The data is already gone; say so instead of failing silently.
+    expect(find.textContaining('jobs and time entries were deleted'), findsOneWidget);
+    expect(find.textContaining('sign in again'), findsOneWidget);
   });
 }

@@ -1,5 +1,6 @@
 import 'package:firebase_auth/firebase_auth.dart' hide EmailAuthProvider;
-import 'package:firebase_ui_auth/firebase_ui_auth.dart' show showReauthenticateDialog;
+import 'package:firebase_ui_auth/firebase_ui_auth.dart'
+    show showReauthenticateDialog;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:starter_architecture_flutter_firebase/src/features/authentication/data/account_deletion_service.dart';
@@ -21,13 +22,16 @@ class DeleteAccountAndDataButton extends ConsumerStatefulWidget {
   static const buttonKey = Key('delete-account');
 
   @override
-  ConsumerState<DeleteAccountAndDataButton> createState() => _DeleteAccountAndDataButtonState();
+  ConsumerState<DeleteAccountAndDataButton> createState() =>
+      _DeleteAccountAndDataButtonState();
 }
 
-class _DeleteAccountAndDataButtonState extends ConsumerState<DeleteAccountAndDataButton> {
+class _DeleteAccountAndDataButtonState
+    extends ConsumerState<DeleteAccountAndDataButton> {
   bool _isLoading = false;
 
-  Future<bool> _defaultReauthenticate(BuildContext context) => showReauthenticateDialog(
+  Future<bool> _defaultReauthenticate(BuildContext context) =>
+      showReauthenticateDialog(
         context: context,
         providers: ref.read(authProvidersProvider),
       );
@@ -36,9 +40,10 @@ class _DeleteAccountAndDataButtonState extends ConsumerState<DeleteAccountAndDat
     final confirmed = await showAlertDialog(
       context: context,
       title: 'Delete account?'.hardcoded,
-      content: 'This permanently deletes all your jobs and time entries, then your account. '
-              'It cannot be undone.'
-          .hardcoded,
+      content:
+          'This permanently deletes all your jobs and time entries, then your account. '
+                  'It cannot be undone.'
+              .hardcoded,
       cancelActionText: 'Cancel'.hardcoded,
       defaultActionText: 'Delete'.hardcoded,
     );
@@ -69,6 +74,16 @@ class _DeleteAccountAndDataButtonState extends ConsumerState<DeleteAccountAndDat
       final reauthenticate = widget.reauthenticate ?? _defaultReauthenticate;
       if (await reauthenticate(context)) {
         await service.deleteAccount();
+      } else if (mounted) {
+        await showAlertDialog(
+          context: context,
+          title: 'Account not deleted yet'.hardcoded,
+          content:
+              'Your jobs and time entries were deleted. To delete the account itself, sign in again '
+                      'and tap Delete account.'
+                  .hardcoded,
+          defaultActionText: 'OK'.hardcoded,
+        );
       }
     }
   }
@@ -86,7 +101,8 @@ class _DeleteAccountAndDataButtonState extends ConsumerState<DeleteAccountAndDat
       ),
       onPressed: _isLoading ? null : _delete,
       icon: _isLoading
-          ? const SizedBox.square(dimension: 16, child: CircularProgressIndicator(strokeWidth: 2))
+          ? const SizedBox.square(
+              dimension: 16, child: CircularProgressIndicator(strokeWidth: 2))
           : const Icon(Icons.delete_outline),
       label: Text('Delete account'.hardcoded),
     );
