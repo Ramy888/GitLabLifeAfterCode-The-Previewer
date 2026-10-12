@@ -90,3 +90,11 @@ def test_package_loop_distinguishes_blocked_from_broken():
 def test_release_links_the_aab():
     links = config()["release:gitlab"]["release"]["assets"]["links"]
     assert any("app-release.aab" in link["url"] for link in links)
+
+
+def test_deploy_and_release_are_never_auto_cancelled():
+    # default: interruptible: true lets a new push cancel older pipelines; a half-done deploy or release must finish.
+    cfg = config()
+    assert cfg["default"]["interruptible"] is True
+    for job in ("deploy:cloudrun", "release:gitlab"):
+        assert cfg[job].get("interruptible") is False, job

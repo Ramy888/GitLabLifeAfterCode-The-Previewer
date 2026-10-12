@@ -163,6 +163,7 @@ package:stores:
 release:gitlab:
   stage: package
   image: registry.gitlab.com/gitlab-org/release-cli:latest
+  interruptible: false  # a newer push must not cancel a release half-way
   needs:
     - package:stores
     - review:scan
@@ -190,6 +191,7 @@ release:gitlab:
 deploy:cloudrun:
   stage: deploy
   image: google/cloud-sdk:slim
+  interruptible: false  # a newer push must not cancel a rollout half-way
   needs: [build:web]
   rules:
     - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH && $GCP_PROJECT_ID
