@@ -10,6 +10,8 @@ from html import escape
 from store_review.report import STORES
 
 SEVERITY_ORDER = ("blocker", "warning", "info")
+# Served by the Cloud Run deploy (deploy/cloudrun/brand); email clients don't render SVG.
+LOGO_URL = "https://time-tracker-web-57342278583.us-central1.run.app/brand/logo-96.png"
 MAX_FINDINGS = 5
 
 INK = "#111827"
@@ -100,8 +102,13 @@ def render_html(doc: dict, release_url: str) -> str:
 <title>{escape(subject_line(doc))}</title></head><body style="margin:0;padding:0;background:#F3F4F6;">
 <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#F3F4F6;"><tr><td align="center" style="padding:24px 12px;">
 <table role="presentation" width="600" cellpadding="0" cellspacing="0" style="max-width:600px;width:100%;background:#FFFFFF;border-radius:16px;overflow:hidden;">
-  <tr><td style="background:{BRAND};padding:20px 32px;font:700 16px {FONT};color:#FFFFFF;">The Previewer
-    <span style="font:400 13px {FONT};color:#C7D2FE;"> · store review rehearsal</span></td></tr>
+  <tr><td style="background:{BRAND};padding:18px 32px;">
+    <table role="presentation" cellpadding="0" cellspacing="0"><tr>
+      <td valign="middle"><img src="{LOGO_URL}" width="40" height="40" alt="The Previewer"
+        style="display:block;border:0;border-radius:10px;"></td>
+      <td valign="middle" style="padding-left:12px;font:700 17px {FONT};color:#FFFFFF;">The Previewer<br>
+        <span style="font:400 12px {FONT};color:#C7D2FE;">App Store and Google Play review rehearsal</span></td>
+    </tr></table></td></tr>
   <tr><td style="padding:28px 32px 4px;font:400 13px {FONT};color:{MUTED};">{escape(app['name'])} · v{escape(str(app['version']))}</td></tr>
   <tr><td style="padding:0 32px;font:700 26px {FONT};color:{INK};">{headline}</td></tr>
   <tr><td style="padding:8px 32px 20px;font:400 15px {FONT};color:{MUTED};line-height:1.5;">{sub}</td></tr>

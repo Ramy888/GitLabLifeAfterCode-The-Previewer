@@ -57,3 +57,10 @@ def test_cli_writes_a_preview_without_sending(tmp_path, monkeypatch):
     out = tmp_path / "email.html"
     assert main(["notify", "--findings", str(findings), "--release-url", URL, "--html-out", str(out)]) == 0
     assert "Google Play" in out.read_text()
+
+
+def test_header_shows_the_hosted_logo_with_alt_text():
+    _, _, html = render_release_email(doc(), URL)
+    # Gmail and Outlook don't render SVG, so the email uses the PNG served with the web app.
+    assert '<img src="https://time-tracker-web-57342278583.us-central1.run.app/brand/logo-96.png"' in html
+    assert 'alt="The Previewer"' in html and 'width="40" height="40"' in html

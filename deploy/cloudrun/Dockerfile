@@ -3,5 +3,6 @@ FROM nginx:1.27-alpine
 COPY nginx.conf /etc/nginx/templates/default.conf.template
 COPY web /usr/share/nginx/html
 COPY legal /usr/share/nginx/html/legal
+COPY brand /usr/share/nginx/html/brand
 ENV PORT=8080
 EXPOSE 8080

@@ -1,3 +1,5 @@
+<img src="deploy/cloudrun/brand/logo-512.png" width="96" alt="The Previewer logo">
+
 # The Previewer
 
 **Reviews your app the way Apple and Google will, before you submit.**
