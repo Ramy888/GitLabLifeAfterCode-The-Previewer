@@ -98,3 +98,16 @@ def test_deploy_and_release_are_never_auto_cancelled():
     assert cfg["default"]["interruptible"] is True
     for job in ("deploy:cloudrun", "release:gitlab"):
         assert cfg[job].get("interruptible") is False, job
+
+
+def test_merging_a_release_mr_emails_the_outcome():
+    cfg = config()
+    job = cfg["notify:release"]
+    rule = job["rules"][0]["if"]
+    assert rule == cfg["release:gitlab"]["rules"][0]["if"] + " && $CLOUDFLARE_EMAIL_TOKEN"
+    needs = {n if isinstance(n, str) else n["job"] for n in job["needs"]}
+    assert {"release:gitlab", "review:scan", "package:stores"} <= needs  # findings + RELEASE_VERSION
+    script = " ".join(job["script"])
+    assert "store-review notify" in script and "--to $NOTIFY_EMAIL_TO" in script
+    assert "/-/releases/v$RELEASE_VERSION" in script
+    assert job["allow_failure"] is True and job["interruptible"] is False  # an email never blocks a release

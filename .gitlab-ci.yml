@@ -188,6 +188,19 @@ release:gitlab:
         - name: Android app bundle (AAB)
           url: "$CI_PROJECT_URL/-/jobs/$AAB_JOB_ID/artifacts/raw/build/app/outputs/bundle/release/app-release.aab"
 
+notify:release:
+  extends: .engine
+  stage: deploy
+  interruptible: false
+  allow_failure: true  # the release is already published; a mail outage must not mark it failed
+  needs: [release:gitlab, review:scan, package:stores]
+  rules:
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH && $CI_COMMIT_MESSAGE =~ /Merge branch 'store-review\/\d/ && $CLOUDFLARE_EMAIL_TOKEN
+  script:
+    - cd $ENGINE_DIR
+    - uv run store-review notify --findings $CI_PROJECT_DIR/findings.json
+        --release-url $CI_PROJECT_URL/-/releases/v$RELEASE_VERSION --to $NOTIFY_EMAIL_TO
+
 deploy:cloudrun:
   stage: deploy
   image: google/cloud-sdk:slim
