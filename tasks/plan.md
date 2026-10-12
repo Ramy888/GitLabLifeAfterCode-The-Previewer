@@ -19,10 +19,27 @@ Dependency order is top to bottom unless noted.
 - [x] **T14 Docs and license**: `docs/STORE_REVIEW.md`, a README section, and a LICENSE line for the new work. AC: SPEC criteria 12 and 13. *Deps: all*
 
 ## Bring-up checklist (the hour GitLab access lands)
-- [ ] Create the project in the provisioned group (public, so the MIT license shows in About; BRIEF Q2). Push this repo and make **`store-review` the default branch** (or merge it into `master` first): `.gitlab/duo/agent-config.yml` is read only from the default branch.
-- [ ] AI > Flows > New flow: paste `.gitlab/duo/flows/store-review.yaml`. Enable the **Assign** and **Mention** triggers on the project.
-- [ ] Note the flow's service account (`ai-<flow>-<group>`) and set CI/CD variable `STORE_REVIEW_MENTION` to it.
-- [ ] Set `STORE_REVIEW_DEMO_LOGIN` **masked, not protected** (or protect the `store-review/*` wildcard), so release-MR pipelines can see it.
-- [ ] Check that `python3` and `pip` exist in the default flow image before trusting `setup_script`. If not, switch to `curl -LsSf https://astral.sh/uv/install.sh | sh`.
-- [ ] `FIREBASE_OPTIONS_DART` (base64 of a real `lib/firebase_options.dart`) for the deployed web build; GCP variables plus Workload Identity Federation for `deploy:cloudrun`.
-- [ ] First end-to-end run: Release issue → handoff → resume → release MR → merge → tag → GitLab Release. Record it.
+- [x] Create the project in the provisioned group (public, so the MIT license shows in About; BRIEF Q2). Push this repo and make **`store-review` the default branch** (or merge it into `master` first): `.gitlab/duo/agent-config.yml` is read only from the default branch.
+- [x] AI > Flows > New flow: paste `.gitlab/duo/flows/store-review.yaml`. Enable the **Assign** and **Mention** triggers on the project.
+- [x] Note the flow's service account (`ai-<flow>-<group>`) and set CI/CD variable `STORE_REVIEW_MENTION` to it.
+- [x] Set `STORE_REVIEW_DEMO_LOGIN` **masked, not protected** (or protect the `store-review/*` wildcard), so release-MR pipelines can see it.
+- [x] Check that `python3` and `pip` exist in the default flow image. (They don't: agent-config fetches the uv binary with python3 alone.)
+- [x] `FIREBASE_OPTIONS_DART` (base64 of a real `lib/firebase_options.dart`) for the deployed web build; GCP variables plus Workload Identity Federation for `deploy:cloudrun`.
+- [x] First end-to-end run on #2 (v2.1.0): handoff → 7 fix MRs → resume → release MR !8 → merge (2026-10-12). Release-on-merge added after, so v2.1.0 has no Release.
+- [ ] Throwaway run on v2.1.1 to exercise release:gitlab, then the recorded run on v2.1.2.
+
+## T15 Account deletion removes the user's data (FULL lane: deletion)
+Reviewer finding LLM-AND-DELETION-DATA-ORPHANED: FirebaseUI's ProfileScreen deletes only the Auth account, and Firestore
+rules then block any cleanup of `users/{uid}/**`. ProfileScreen's delete button can't be hidden or hooked before deletion,
+so the Account tab gets its own screen.
+
+- [x] AC1: Deleting the account deletes every document in `users/{uid}/jobs` and `users/{uid}/entries` **before** the Auth
+      account is deleted (Firestore rules need the user signed in).
+- [x] AC2: If Firebase answers `requires-recent-login`, the user re-authenticates and the deletion retries. Data deletion is
+      idempotent, so a cancelled re-auth leaves an account with no data, which the confirm text already promised.
+- [x] AC3: The confirm dialog says jobs and time entries are deleted permanently, then the account.
+- [x] AC4: The Account tab keeps avatar, display name, sign-in identity and sign out (linking an email to an
+      anonymous account, which ProfileScreen offered, is dropped); "Account > Delete account" still works.
+- [x] AC5: `/delete-account` no longer tells users to delete jobs first.
+- [x] AC6: Unit tests prove the order (data, then account) and the retry path; a live check with a throwaway Auth user (never
+      the reviewer account) proves the Firestore documents are gone.
