@@ -22,7 +22,7 @@ def findings(root, rule_id):
 def test_usage_missing_when_plugin_needs_key(make_app):
     root = make_app({"pubspec.yaml": PUBSPEC.format(deps="  image_picker: ^1.0.0"), "ios/Runner/Info.plist": info()})
     (f,) = [f for f in findings(root, "IOS-USAGE-MISSING") if "NSCameraUsageDescription" in f.title]
-    assert f.severity == "blocker" and f.store == "ios" and f.guideline.startswith("Apple 5.1.1")
+    assert f.severity == "blocker" and f.store == "ios" and f.guideline.startswith("iOS 5.1.1")
     assert f.evidence[0].path == "pubspec.yaml"
 
 

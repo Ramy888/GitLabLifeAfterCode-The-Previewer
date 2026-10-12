@@ -3,7 +3,7 @@ store: android
 rules:
   AND-TARGETSDK:
     layer: automated
-    guideline: "Play: Target API level requirement"
+    guideline: "Android: Target API level requirement"
     severity: blocker
     weight: 0
     fix: {kind: auto, recipe: "Set targetSdk = {required} in {path}"}
@@ -12,7 +12,7 @@ rules:
   AND-DELETION-URL:
     layer: automated
     input: {key: account_deletion_url, kind: url, ask: "A public web page where users can request account deletion"}
-    guideline: "Play: User Data policy, account deletion (web link)"
+    guideline: "Android: User Data policy, account deletion (web link)"
     severity: blocker
     weight: 0
     fix: {kind: handoff, recipe: "Publish a web page where users can request account deletion and set store/listing.yaml account_deletion_url"}
@@ -20,7 +20,7 @@ rules:
     verified: 2026-10-10
   AND-DATASAFETY-PERM:
     layer: automated
-    guideline: "Play: Data safety section accuracy"
+    guideline: "Android: Data safety section accuracy"
     severity: blocker
     weight: 0
     fix: {kind: manual, recipe: "Declare the data {permission} gives access to in the Data safety form and list it in store/data_safety.yaml"}
@@ -28,7 +28,7 @@ rules:
     verified: 2026-10-10
   AND-CLEARTEXT:
     layer: automated
-    guideline: "Play: Device and network abuse / security best practice (cleartext traffic)"
+    guideline: "Android: Device and network abuse / security best practice (cleartext traffic)"
     severity: warning
     weight: 4
     fix: {kind: manual, recipe: "Remove usesCleartextTraffic or use a network security config scoped to specific hosts"}
@@ -36,7 +36,7 @@ rules:
     verified: 2026-10-10
   AND-DEBUGGABLE:
     layer: automated
-    guideline: "Play: release builds must not be debuggable"
+    guideline: "Android: release builds must not be debuggable"
     severity: blocker
     weight: 0
     fix: {kind: auto, recipe: "Remove android:debuggable from the release manifest"}
@@ -52,7 +52,7 @@ rules:
     verified: 2026-10-10
   AND-DEBUG-SIGNING:
     layer: automated
-    guideline: "Play: app bundles signed in debug mode are rejected at upload"
+    guideline: "Android: app bundles signed in debug mode are rejected at upload"
     severity: blocker
     weight: 0
     fix: {kind: manual, recipe: "Create an upload key, load it from CI/CD variables, and point the release buildType at it in {path}"}
@@ -60,7 +60,7 @@ rules:
     verified: 2026-10-10
   AND-EXAMPLE-PACKAGE:
     layer: automated
-    guideline: "Play: package names starting with com.example are restricted"
+    guideline: "Android: package names starting with com.example are restricted"
     severity: blocker
     weight: 0
     fix: {kind: manual, recipe: "Choose your own reverse-domain applicationId in {path} and register it in Firebase"}

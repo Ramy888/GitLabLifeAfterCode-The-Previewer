@@ -44,7 +44,7 @@ def test_ios_package_files(make_app, tmp_path, monkeypatch):
     assert "Account > Delete account" in notes and "STORE_REVIEW_DEMO_LOGIN" in notes
     for f in FILES:
         assert "s3cret-pass" not in (d / f).read_text()
-    assert "App Store Connect" in (d / "checklist.md").read_text()
+    assert "iOS store developer console" in (d / "checklist.md").read_text()
 
 
 def test_android_package_has_deletion_url_and_data_safety(make_app, tmp_path):
@@ -53,7 +53,7 @@ def test_android_package_has_deletion_url_and_data_safety(make_app, tmp_path):
     assert code == 0
     assert json.loads((d / "metadata.json").read_text())["account_deletion_url"].endswith("/delete")
     assert "android.permission.CAMERA" in (d / "privacy-answers.json").read_text()
-    assert "Play Console" in (d / "checklist.md").read_text()
+    assert "Android store developer console" in (d / "checklist.md").read_text()
 
 
 def test_release_notes_from_repo_when_present(make_app, tmp_path):

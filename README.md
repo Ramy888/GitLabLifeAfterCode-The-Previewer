@@ -2,9 +2,9 @@
 
 # The Previewer
 
-**Reviews your app the way Apple and Google will, before you submit.**
+**Reviews your app the way the iOS and Android stores will, before you submit.**
 
-The Previewer is a GitLab Duo custom flow that rehearses **App Store** and **Google Play** review for a Flutter app.
+The Previewer is a GitLab Duo custom flow that rehearses **iOS store** and **Android store** review for a Flutter app.
 You assign a release issue; agents review the app against the stores' guidelines, open fix merge requests, ask you
 one checklist, and hand back a release merge request with a readiness score and a ready-to-submit package per store.
 **Merging that MR is your approval** (Supervised autonomy). Nothing is ever uploaded to a store.
@@ -26,19 +26,19 @@ Built for the GitLab "Life After Code" hackathon, **Path B**: a fork of the MIT 
 | Before (manual, fragmented) | After (The Previewer) |
 |---|---|
 | Submit, wait a day or more, read a rejection, guess the fix, resubmit | Rehearse both reviews in minutes, before the first submission |
-| Store rules spread across Apple's guidelines, Play policy and Data safety forms | Rule packs that cite the guideline for every finding |
+| Store rules spread across the iOS review guidelines, the Android store's policies and its Data safety form | Rule packs that cite the guideline for every finding |
 | Fixes done by hand, one rejection at a time | One fix MR per auto-fixable finding, opened by an agent |
 | No signal of readiness | Per-store readiness 0–100 with a confidence range; any blocker caps it at 40 |
 | Rejection replies written from scratch | `@flow rejection: <message>`: an advocate decides fix or appeal and drafts the appeal with evidence |
 
-What the first run found on this app, all real: targetSdk 34 below Play's required 36, release builds signed with the
+What the first run found on this app, all real: targetSdk 34 below the Android store's required 36, release builds signed with the
 debug key, **no INTERNET permission in release builds** (sign-in and Firestore would fail in production), no iOS
 privacy manifest, template app names, and an account deletion that left the user's data behind. All are fixed in
 this repository; both stores now score 100 with no blockers.
 
 ## How it uses the GitLab Duo Agent Platform
 
-- **One custom flow, five agents**: a governor delegates to an Apple reviewer, a Google Play reviewer, a fixer (opens
+- **One custom flow, five agents**: a governor delegates to an iOS store reviewer, an Android store reviewer, a fixer (opens
   MRs) and a rejection advocate. Triggers: **Assign** (start a review) and **Mention** (`resume`, `rejection:`).
 - **A deterministic engine the agents call** ([`tools/store_review`](tools/store_review)): it scans the app, scores it,
   validates the human's inputs and builds the store packages, so scores never come from a model's guess. The agents

@@ -1,7 +1,7 @@
 # The Previewer
 
-Reviews your app the way Apple and Google will, before you submit. The Previewer rehearses Apple App Store review
-and Google Play review for this Flutter app.
+Reviews your app the way the iOS and Android stores will, before you submit. The Previewer rehearses iOS store review
+and Android store review for this Flutter app.
 A GitLab Duo flow reviews the app the way each store would, fixes what it can through merge requests, asks you once
 for what only you have, and hands you a package ready to submit for each store. It never uploads anything to a store.
 
@@ -45,7 +45,7 @@ Each store gets a score from 0 to 100 with a range:
 - The benchmark line next to the score is the precision and recall of the deterministic rules on the Rejection
   Corpus. It describes the tool, not your app, so it never changes the score.
 
-The score is a rehearsal signal. It is not a prediction from Apple or Google.
+The score is a rehearsal signal. It is not a prediction from either store.
 
 ## The Rejection Corpus
 
@@ -61,32 +61,32 @@ Rule packs live in `tools/store_review/store_review/rules/*.yaml`. Each rule cit
 
 | Rule | Store | Checks |
 |---|---|---|
-| `IOS-USAGE-MISSING` | Apple | A plugin needs an `NS*UsageDescription` key that Info.plist lacks (5.1.1) |
-| `IOS-USAGE-PLACEHOLDER` | Apple | A purpose string is too short or reads like a placeholder (5.1.1) |
-| `IOS-PRIVACY-MANIFEST` | Apple | A required-reason API is used but there is no app privacy manifest (ITMS-91053) |
-| `IOS-PRIVACY-REASON` | Apple | The privacy manifest uses an unapproved reason code (ITMS-91053) |
-| `IOS-ENCRYPTION-FLAG` | Apple | The export compliance answer is missing |
-| `IOS-ATS-ARBITRARY` | Apple | App Transport Security is off for every domain (2.5) |
-| `IOS-SIWA` | Apple | A third-party login without Sign in with Apple (4.8) |
-| `AND-TARGETSDK` | Google Play | `targetSdk` below the current requirement (36 since 2026-08-31) |
-| `AND-DEBUG-SIGNING` | Google Play | The release build is signed with the debug key |
-| `AND-EXAMPLE-PACKAGE` | Google Play | The applicationId starts with the restricted `com.example` prefix |
-| `AND-DELETION-URL` | Google Play | Accounts exist but there is no web link for account deletion |
-| `AND-DATASAFETY-PERM` | Google Play | A dangerous permission is missing from the Data safety answers |
-| `AND-CLEARTEXT` | Google Play | Cleartext HTTP allowed for every host |
-| `AND-DEBUGGABLE` | Google Play | The manifest marks the app debuggable |
-| `AND-EXPORTED` | Google Play | A component with an intent filter lacks `android:exported` |
-| `SHR-ACCOUNT-DELETION` | Both | Accounts can be created but not deleted in the app (Apple 5.1.1(v), Play User Data) |
-| `SHR-DEMO-LOGIN` | Both | Reviewers need a demo account (Apple 2.1, Play App access) |
+| `IOS-USAGE-MISSING` | iOS | A plugin needs an `NS*UsageDescription` key that Info.plist lacks (5.1.1) |
+| `IOS-USAGE-PLACEHOLDER` | iOS | A purpose string is too short or reads like a placeholder (5.1.1) |
+| `IOS-PRIVACY-MANIFEST` | iOS | A required-reason API is used but there is no app privacy manifest (ITMS-91053) |
+| `IOS-PRIVACY-REASON` | iOS | The privacy manifest uses an unapproved reason code (ITMS-91053) |
+| `IOS-ENCRYPTION-FLAG` | iOS | The export compliance answer is missing |
+| `IOS-ATS-ARBITRARY` | iOS | App Transport Security is off for every domain (2.5) |
+| `IOS-SIWA` | iOS | A third-party login without the iOS native sign-in (4.8) |
+| `AND-TARGETSDK` | Android | `targetSdk` below the current requirement (36 since 2026-08-31) |
+| `AND-DEBUG-SIGNING` | Android | The release build is signed with the debug key |
+| `AND-EXAMPLE-PACKAGE` | Android | The applicationId starts with the restricted `com.example` prefix |
+| `AND-DELETION-URL` | Android | Accounts exist but there is no web link for account deletion |
+| `AND-DATASAFETY-PERM` | Android | A dangerous permission is missing from the Data safety answers |
+| `AND-CLEARTEXT` | Android | Cleartext HTTP allowed for every host |
+| `AND-DEBUGGABLE` | Android | The manifest marks the app debuggable |
+| `AND-EXPORTED` | Android | A component with an intent filter lacks `android:exported` |
+| `SHR-ACCOUNT-DELETION` | Both | Accounts can be created but not deleted in the app (iOS 5.1.1(v), Android: User Data policy) |
+| `SHR-DEMO-LOGIN` | Both | Reviewers need a demo account (iOS 2.1, Android: App access) |
 | `SHR-PRIVACY-URL` | Both | No privacy policy URL |
-| `SHR-PLACEHOLDER-UI` | Both | Text such as "coming soon" or "lorem ipsum" in the UI (Apple 2.1, Play Minimum functionality) |
-| `SHR-METADATA-PLATFORM` | Both | A listing mentions the other platform (Apple 2.3.10) |
+| `SHR-PLACEHOLDER-UI` | Both | Text such as "coming soon" or "lorem ipsum" in the UI (iOS 2.1, Android: Minimum functionality) |
+| `SHR-METADATA-PLATFORM` | Both | A listing mentions the other platform (iOS 2.3.10) |
 
 ## What is real and what is simulated
 
 | Real | Simulated |
 |---|---|
-| The scans of this repository, every finding and its evidence | Store decisions: the tool never uploads, and only Apple and Google decide |
+| The scans of this repository, every finding and its evidence | Store decisions: the tool never uploads, and only the stores decide |
 | Fix merge requests and the pipelines that prove them | Rejection messages in the demo come from the Rejection Corpus and are labelled as such |
 | The readiness score, computed from the findings by a published formula | The reviewer agents' judgement findings are model output, shown with their confidence |
 | The per-store packages in the GitLab Release | A signed Android build is proven only once the upload key variables exist; the tests check the gradle text, not a signed AAB |

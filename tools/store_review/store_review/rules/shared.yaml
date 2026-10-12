@@ -3,7 +3,7 @@ store: shared
 rules:
   SHR-ACCOUNT-DELETION:
     layer: automated
-    guideline: "Apple 5.1.1(v) Account deletion; Play User Data policy (in-app deletion)"
+    guideline: "iOS 5.1.1(v) Account deletion; Android User Data policy (in-app deletion)"
     severity: blocker
     weight: 0
     fix: {kind: manual, recipe: "Add an in-app path that deletes the account and its data, then set store/review_notes.yaml account_deletion_path"}
@@ -12,7 +12,7 @@ rules:
   SHR-DEMO-LOGIN:
     layer: reviewer
     input: {key: STORE_REVIEW_DEMO_LOGIN, kind: ci_variable, ask: "A reviewer account (user:password) saved as a masked CI/CD variable"}
-    guideline: "Apple 2.1 App Completeness (demo account); Play App access"
+    guideline: "iOS 2.1 App Completeness (demo account); Android App access"
     severity: blocker
     weight: 0
     fix: {kind: handoff, recipe: "Create a reviewer account and store it as masked CI/CD variable STORE_REVIEW_DEMO_LOGIN (user:password)"}
@@ -21,7 +21,7 @@ rules:
   SHR-PRIVACY-URL:
     layer: automated
     input: {key: privacy_policy_url, kind: url, ask: "The public URL of your privacy policy"}
-    guideline: "Apple 5.1.1(i) Privacy policy; Play User Data policy (privacy policy)"
+    guideline: "iOS 5.1.1(i) Privacy policy; Android User Data policy (privacy policy)"
     severity: blocker
     weight: 0
     fix: {kind: handoff, recipe: "Publish a privacy policy and set store/listing.yaml privacy_policy_url"}
@@ -29,7 +29,7 @@ rules:
     verified: 2026-10-10
   SHR-PLACEHOLDER-UI:
     layer: reviewer
-    guideline: "Apple 2.1 App Completeness; Play Minimum functionality"
+    guideline: "iOS 2.1 App Completeness; Android Minimum functionality"
     severity: warning
     weight: 5
     fix: {kind: manual, recipe: "Finish or hide the feature behind '{text}' before submission"}
@@ -37,7 +37,7 @@ rules:
     verified: 2026-10-10
   SHR-METADATA-PLATFORM:
     layer: reviewer
-    guideline: "Apple 2.3.10 Accurate metadata (no other platforms)"
+    guideline: "iOS 2.3.10 Accurate metadata (no other platforms)"
     severity: warning
     weight: 3
     fix: {kind: manual, recipe: "Remove '{word}' from the {store} listing text"}

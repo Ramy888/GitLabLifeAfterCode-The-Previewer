@@ -9,7 +9,7 @@ from store_review.rules import rule_meta
 from store_review.score import score_store
 from store_review.snapshot import AppSnapshot
 
-STORES = {"ios": "Apple App Store", "android": "Google Play"}
+STORES = {"ios": "iOS store", "android": "Android store"}
 DEFAULT_MENTION = "@<flow service account>"
 
 

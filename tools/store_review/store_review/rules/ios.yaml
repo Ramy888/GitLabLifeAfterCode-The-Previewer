@@ -3,7 +3,7 @@ store: ios
 rules:
   IOS-USAGE-MISSING:
     layer: automated
-    guideline: "Apple 5.1.1 Data Collection and Storage (purpose strings)"
+    guideline: "iOS 5.1.1 Data Collection and Storage (purpose strings)"
     severity: blocker
     weight: 0
     fix: {kind: auto, recipe: "Add {key} to ios/Runner/Info.plist with a sentence that says why the app needs it"}
@@ -11,7 +11,7 @@ rules:
     verified: 2026-10-10
   IOS-USAGE-PLACEHOLDER:
     layer: automated
-    guideline: "Apple 5.1.1 Data Collection and Storage (purpose strings)"
+    guideline: "iOS 5.1.1 Data Collection and Storage (purpose strings)"
     severity: warning
     weight: 5
     fix: {kind: manual, recipe: "Rewrite {key} to explain the concrete user benefit"}
@@ -19,7 +19,7 @@ rules:
     verified: 2026-10-10
   IOS-PRIVACY-MANIFEST:
     layer: automated
-    guideline: "Apple upload check ITMS-91053 (privacy manifest, required reason APIs)"
+    guideline: "iOS upload check ITMS-91053 (privacy manifest, required reason APIs)"
     severity: warning
     weight: 4
     fix: {kind: auto, recipe: "Add ios/Runner/PrivacyInfo.xcprivacy declaring {category} with reason {reason}"}
@@ -27,7 +27,7 @@ rules:
     verified: 2026-10-10
   IOS-PRIVACY-REASON:
     layer: automated
-    guideline: "Apple upload check ITMS-91053 (privacy manifest, required reason APIs)"
+    guideline: "iOS upload check ITMS-91053 (privacy manifest, required reason APIs)"
     severity: blocker
     weight: 0
     fix: {kind: manual, recipe: "Replace {code} with an approved reason for {category}"}
@@ -36,7 +36,7 @@ rules:
   IOS-ENCRYPTION-FLAG:
     layer: automated
     input: {key: uses_non_exempt_encryption, kind: answer, ask: "Does the app use encryption beyond HTTPS and the operating system? (yes/no)"}
-    guideline: "App Store Connect export compliance"
+    guideline: "iOS export compliance"
     severity: warning
     weight: 2
     fix: {kind: handoff, recipe: "Answer: does the app use encryption beyond HTTPS and the OS? Then set ITSAppUsesNonExemptEncryption"}
@@ -44,7 +44,7 @@ rules:
     verified: 2026-10-10
   IOS-ATS-ARBITRARY:
     layer: automated
-    guideline: "Apple 2.5 Software Requirements (App Transport Security)"
+    guideline: "iOS 2.5 Software Requirements (App Transport Security)"
     severity: warning
     weight: 4
     fix: {kind: manual, recipe: "Remove NSAllowsArbitraryLoads or scope exceptions to specific domains"}
@@ -52,10 +52,10 @@ rules:
     verified: 2026-10-10
   IOS-SIWA:
     layer: automated
-    guideline: "Apple 4.8 Login Services"
+    guideline: "iOS 4.8 Login Services"
     severity: warning
     weight: 6
-    fix: {kind: manual, recipe: "Offer Sign in with Apple, or another login that meets 4.8, next to {plugin}"}
+    fix: {kind: manual, recipe: "Offer the iOS native sign-in, or another login that meets 4.8, next to {plugin}"}
     source_url: https://developer.apple.com/app-store/review/guidelines/#login-services
     verified: 2026-10-10
 

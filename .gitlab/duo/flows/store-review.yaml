@@ -12,14 +12,14 @@ environment: ambient
 components:
   - name: "ios_reviewer"
     type: AgentComponent
-    description: "Reviews the app the way Apple App Review would: reads the store-review scan, inspects Info.plist, the privacy manifest, metadata and app screens, and writes judgement findings with evidence."
+    description: "Reviews the app the way iOS store review would: reads the store-review scan, inspects Info.plist, the privacy manifest, metadata and app screens, and writes judgement findings with evidence."
     prompt_id: "ios_reviewer"
     toolset: ["run_command", "read_file", "read_files", "list_dir", "find_files", "create_file_with_contents"]
     ui_log_events: ["on_agent_final_answer", "on_tool_execution_failed"]
 
   - name: "android_reviewer"
     type: AgentComponent
-    description: "Reviews the app the way Google Play review would: reads the store-review scan, inspects the manifest, gradle config, Data safety answers and listing, and writes judgement findings with evidence."
+    description: "Reviews the app the way Android store review would: reads the store-review scan, inspects the manifest, gradle config, Data safety answers and listing, and writes judgement findings with evidence."
     prompt_id: "android_reviewer"
     toolset: ["run_command", "read_file", "read_files", "list_dir", "find_files", "create_file_with_contents"]
     ui_log_events: ["on_agent_final_answer", "on_tool_execution_failed"]
@@ -71,7 +71,7 @@ prompts:
     unit_primitives: []
     prompt_template:
       system: |
-        You are The Previewer. You run a store review for a Flutter app before it is submitted to the Apple App Store and Google Play.
+        You are The Previewer. You run a store review for a Flutter app before it is submitted to the iOS store and the Android store.
         You never upload anything to a store. Your job ends with a package a human submits.
 
         The engine is a CLI. Run it with run_command, program "uv", from the repository root:
@@ -114,6 +114,7 @@ prompts:
           STORE_REVIEW_DEMO_LOGIN. Tell humans to never paste passwords into the issue.
         - Ask the human at most once per review (the handoff note). Everything else you do yourself.
         - Be specific: name files, line numbers and guideline numbers.
+        - In everything you write (notes, findings, MR titles and descriptions, appeals), call the stores "the iOS store" and "the Android store" and cite guidelines as "iOS 5.1.1" or "Android: User Data policy". Never write a store, company or console brand name.
       user: |
         Project: {{project_id}}
         Goal: {{goal}}
@@ -121,7 +122,7 @@ prompts:
       timeout: 600
 
   - prompt_id: "ios_reviewer"
-    name: "Apple App Review rehearsal"
+    name: "iOS store review rehearsal"
     unit_primitives: []
     prompt_template:
       system: |
@@ -136,12 +137,13 @@ prompts:
         guideline, title, severity, weight 2-10, source "llm", confidence 0-1, evidence (path, line, detail; at least
         one), fix (kind auto|manual|handoff, recipe). Overwrite the file. No evidence, no finding.
         Report what you added in two lines.
-      user: "Review for the Apple App Store."
+        In everything you write (notes, findings, MR titles and descriptions, appeals), call the stores "the iOS store" and "the Android store" and cite guidelines as "iOS 5.1.1" or "Android: User Data policy". Never write a store, company or console brand name.
+      user: "Review for the iOS store."
     params:
       timeout: 300
 
   - prompt_id: "android_reviewer"
-    name: "Google Play review rehearsal"
+    name: "Android store review rehearsal"
     unit_primitives: []
     prompt_template:
       system: |
@@ -155,7 +157,8 @@ prompts:
         LLM-AND-), store "android", layer "reviewer", guideline, title, severity, weight 2-10, source "llm",
         confidence 0-1, evidence (path, line, detail; at least one), fix (kind, recipe). Overwrite the file.
         No evidence, no finding. Report what you added in two lines.
-      user: "Review for Google Play."
+        In everything you write (notes, findings, MR titles and descriptions, appeals), call the stores "the iOS store" and "the Android store" and cite guidelines as "iOS 5.1.1" or "Android: User Data policy". Never write a store, company or console brand name.
+      user: "Review for the Android store."
     params:
       timeout: 300
 
@@ -176,6 +179,7 @@ prompts:
         - AND-EXPORTED: add android:exported to the component.
         Never edit signing configs, keystores, CI/CD variables or anything holding a secret. If a recipe is unclear,
         skip it and say why. Report the merge requests you opened.
+        In everything you write (notes, findings, MR titles and descriptions, appeals), call the stores "the iOS store" and "the Android store" and cite guidelines as "iOS 5.1.1" or "Android: User Data policy". Never write a store, company or console brand name.
       user: "Open fix merge requests for the auto-fixable findings."
     params:
       timeout: 600
@@ -186,13 +190,14 @@ prompts:
     prompt_template:
       system: |
         You receive a store rejection message. Decide if it is valid for this repository.
-        1. Identify the guideline it cites (for example Apple 5.1.1(v), Apple 2.1, Play User Data policy).
+        1. Identify the guideline it cites (for example iOS 5.1.1(v), iOS 2.1, Android: User Data policy).
         2. Look for evidence in the repo: run the scan, read findings.json, read the code it points at.
            Reference cases live in tools/store_review/corpus/*/case.yaml; compare with them.
         3. Verdict VALID: name the finding id and the fix. Verdict WRONG: write an appeal for the store's
            resolution center: polite, short, cites the guideline, and gives the exact path a reviewer follows to see
            the feature (for example "Account tab > Profile > Delete account", with the file that renders it).
         Never claim something the code does not show.
+        In everything you write (notes, findings, MR titles and descriptions, appeals), call the stores "the iOS store" and "the Android store" and cite guidelines as "iOS 5.1.1" or "Android: User Data policy". Never write a store, company or console brand name.
       user: "Rejection to assess is in the conversation."
     params:
       timeout: 300

@@ -107,7 +107,7 @@ def render_html(doc: dict, release_url: str) -> str:
       <td valign="middle"><img src="{LOGO_URL}" width="40" height="40" alt="The Previewer"
         style="display:block;border:0;border-radius:10px;"></td>
       <td valign="middle" style="padding-left:12px;font:700 17px {FONT};color:#FFFFFF;">The Previewer<br>
-        <span style="font:400 12px {FONT};color:#C7D2FE;">App Store and Google Play review rehearsal</span></td>
+        <span style="font:400 12px {FONT};color:#C7D2FE;">iOS and Android store review rehearsal</span></td>
     </tr></table></td></tr>
   <tr><td style="padding:28px 32px 4px;font:400 13px {FONT};color:{MUTED};">{escape(app['name'])} · v{escape(str(app['version']))}</td></tr>
   <tr><td style="padding:0 32px;font:700 26px {FONT};color:{INK};">{headline}</td></tr>

@@ -92,6 +92,6 @@ def sign_in_with_apple(snap: AppSnapshot, pack: dict) -> Iterator[Hit]:
         return
     for plugin in pack["social_login_plugins"]:
         if plugin in snap.dependencies:
-            yield Hit(f"Third-party login ({plugin}) without Sign in with Apple",
+            yield Hit(f"Third-party login ({plugin}) without the iOS native sign-in",
                       [_pubspec_evidence(snap, plugin)], {"plugin": plugin})
             return

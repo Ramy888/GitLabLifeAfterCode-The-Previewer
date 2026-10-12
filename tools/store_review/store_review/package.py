@@ -12,7 +12,7 @@ DEMO_LOGIN_VARIABLE = "STORE_REVIEW_DEMO_LOGIN"
 DEFAULT_NOTES = {"en": "Bug fixes and improvements.\n", "ar": "إصلاحات وتحسينات.\n"}
 CONSOLE_STEPS = {
     "ios": [
-        "Open App Store Connect > your app > the new version.",
+        "Open the iOS store developer console > your app > the new version.",
         "Paste release-notes.en.md into What's New (add Arabic from release-notes.ar.md if the app is localized).",
         "Copy name, subtitle and description from metadata.json.",
         "App Review Information: turn on Sign-in required and enter the demo account from the masked CI/CD variable "
@@ -21,7 +21,7 @@ CONSOLE_STEPS = {
         "Select the build, then Add for Review and Submit.",
     ],
     "android": [
-        "Open Play Console > your app > Test and release > create a new release.",
+        "Open the Android store developer console > your app > Test and release > create a new release.",
         "Upload the AAB linked from this GitLab Release (job build:android) and paste release-notes.en.md (and Arabic) into release notes.",
         "Store listing: copy name, short description and description from metadata.json.",
         f"App content > App access: add the demo account from the masked CI/CD variable {DEMO_LOGIN_VARIABLE}.",

@@ -5,7 +5,7 @@ from store_review.notify import render_release_email
 
 
 def doc(ios_status="ready", ios_blockers=0, extra=()):
-    finding = {"id": "LLM-IOS-SUPPORT", "store": "ios", "layer": "reviewer", "guideline": "Apple 1.5",
+    finding = {"id": "LLM-IOS-SUPPORT", "store": "ios", "layer": "reviewer", "guideline": "iOS 1.5",
                "title": "Only contact is <a GitLab issue>", "severity": "warning", "weight": 6, "source": "llm",
                "confidence": 0.8, "evidence": [{"path": "deploy/legal/privacy.html"}], "fix": {"kind": "manual", "recipe": "x"}}
     return {"schema": "findings@1", "app": {"name": "Time Tracker", "version": "2.1.1"},
@@ -22,13 +22,13 @@ URL = "https://gitlab.com/g/p/-/releases/v2.1.1"
 def test_subject_and_text_carry_the_outcome():
     subject, text, _ = render_release_email(doc(), URL)
     assert subject == "Time Tracker v2.1.1 is ready to submit · iOS 95 · Android 91"
-    assert "Apple App Store: ready, readiness 95 (91–100), 0 blockers, 2 warnings" in text
+    assert "iOS store: ready, readiness 95 (91–100), 0 blockers, 2 warnings" in text
     assert URL in text and "Nothing was uploaded to any store" in text
 
 
 def test_html_shows_both_stores_the_release_button_and_escapes_findings():
     _, _, html = render_release_email(doc(), URL)
-    for needle in ("Apple App Store", "Google Play", ">95<", ">91<", "91–100", "84–100", f'href="{URL}"', "Ready to submit"):
+    for needle in ("iOS store", "Android store", ">95<", ">91<", "91–100", "84–100", f'href="{URL}"', "Ready to submit"):
         assert needle in html, needle
     assert "&lt;a GitLab issue&gt;" in html and "<a GitLab issue>" not in html
     assert "<table" in html and "<style" not in html  # inline styles only: Gmail strips style blocks
@@ -56,7 +56,7 @@ def test_cli_writes_a_preview_without_sending(tmp_path, monkeypatch):
     findings.write_text(json.dumps(doc()))
     out = tmp_path / "email.html"
     assert main(["notify", "--findings", str(findings), "--release-url", URL, "--html-out", str(out)]) == 0
-    assert "Google Play" in out.read_text()
+    assert "Android store" in out.read_text()
 
 
 def test_header_shows_the_hosted_logo_with_alt_text():
