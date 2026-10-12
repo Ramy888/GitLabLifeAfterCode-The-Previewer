@@ -113,3 +113,7 @@ android/upload-keystore.jks
 
 # Local credentials (never commit)
 .env
+
+# demo recording output
+scripts/demo-video/out/
+scripts/demo-video/fail.png
