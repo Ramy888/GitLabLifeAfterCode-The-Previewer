@@ -16,7 +16,7 @@ for what only you have, and hands you a package ready to submit for each store. 
    signing, below), and comment `@<service account> resume`. The note gives the exact account to mention.
 5. The governor validates your inputs. If something is missing it posts a shorter checklist. If everything is in
    place it asks both reviewers again (the fixes have landed) and commits their judgement as
-   `store/review/judgement.{ios,android}.json`, then opens the release merge request on `store-review/<version>`.
+   `store/review/judgement.{ios,android}.json` (tagged with the version, so a later release never inherits it), then opens the release merge request on `store-review/<version>`.
    Its pipeline rebuilds the findings, merging that judgement into the scores, and builds the per-store packages. **Merging it is your approval.** The merge pipeline then tags `v<version>` and publishes the GitLab Release.
 6. If a store rejects the app later, comment `@<service account> rejection: <the store's message>`. The **advocate**
    decides whether the rejection is valid (the fixer opens a fix) or wrong (it writes the appeal with evidence).

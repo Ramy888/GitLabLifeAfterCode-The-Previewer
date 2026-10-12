@@ -38,14 +38,22 @@ def cmd_scan(args: argparse.Namespace) -> int:
     snap = load_snapshot(args.app)
     benchmark = _read_json(args.benchmark) if args.benchmark else None
     doc = build_document(app_info(snap), run_checks(snap), benchmark)
-    # Reviewer-agent judgement committed with a release (by the flow's resume) counts toward the scores.
+    # Reviewer-agent judgement committed with a release (by the flow's resume) counts toward the scores,
+    # but only for the version it was written for: older releases' files stay on the default branch.
+    app_version = str(snap.version).split("+", 1)[0]
     for path in sorted(Path(args.app).glob(JUDGEMENT_GLOB)):
+        rel = path.relative_to(args.app)
         try:
-            doc = merge_llm(doc, _read_json(path))
+            judgement = _read_json(path)
+            version = str(judgement.get("version") or "none").split("+", 1)[0] if isinstance(judgement, dict) else "none"
+            if version != app_version:
+                print(f"skipped {rel} (version {version}, app is {app_version})")
+                continue
+            doc = merge_llm(doc, judgement)
         except (SchemaError, json.JSONDecodeError) as err:
-            print(f"{path.relative_to(args.app)} rejected: {err}", file=sys.stderr)
+            print(f"{rel} rejected: {err}", file=sys.stderr)
             return EXIT_SCHEMA
-        print(f"merged reviewer judgement from {path.relative_to(args.app)}")
+        print(f"merged reviewer judgement from {rel}")
     _write_json(args.out, doc)
     if args.report:
         Path(args.report).write_text(render_markdown(doc))

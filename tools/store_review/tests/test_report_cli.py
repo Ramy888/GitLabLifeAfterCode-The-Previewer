@@ -87,6 +87,12 @@ def test_headline_pluralises(app, tmp_path, monkeypatch):
     assert "1 warning ·" in headline("ios", doc) and "0 blockers" in headline("ios", doc)
 
 
+def app_version(app):
+    from store_review.snapshot import load_snapshot
+
+    return load_snapshot(app).version
+
+
 def llm_finding(**over):
     d = {"id": "LLM-4.2", "store": "ios", "layer": "reviewer", "guideline": "Apple 4.2 Minimum Functionality",
          "title": "Thin feature set", "severity": "warning", "weight": 8, "source": "llm", "confidence": 0.5,
@@ -154,7 +160,7 @@ def test_scan_merges_committed_judgement_into_scores_and_report(app, tmp_path, m
     review = app / "store/review"
     review.mkdir(parents=True)
     blocker = llm_finding(id="LLM-IOS-FOREIGN-ID", severity="blocker", confidence=0.8, title="Foreign App Store ID")
-    (review / "judgement.ios.json").write_text(json.dumps({"findings": [blocker]}))
+    (review / "judgement.ios.json").write_text(json.dumps({"version": app_version(app), "findings": [blocker]}))
     _, after = scan(app, tmp_path, monkeypatch, env={"STORE_REVIEW_DEMO_LOGIN": "x"})
     assert "LLM-IOS-FOREIGN-ID" in [f["id"] for f in after["findings"]]
     assert after["scores"]["ios"]["blockers"] == before["scores"]["ios"]["blockers"] + 1
@@ -165,7 +171,31 @@ def test_scan_merges_committed_judgement_into_scores_and_report(app, tmp_path, m
 def test_scan_rejects_a_malformed_judgement_file(app, tmp_path, monkeypatch, capsys):
     review = app / "store/review"
     review.mkdir(parents=True)
-    (review / "judgement.android.json").write_text(json.dumps({"findings": [llm_finding(source="rule")]}))
+    bad = {"version": app_version(app), "findings": [llm_finding(source="rule")]}
+    (review / "judgement.android.json").write_text(json.dumps(bad))
     out = tmp_path / "findings.json"
     assert main(["scan", "--app", str(app), "--out", str(out)]) == 2
     assert "judgement.android.json" in capsys.readouterr().err
+
+
+def test_scan_ignores_judgement_left_from_another_release(app, tmp_path, monkeypatch, capsys):
+    # After a release merges, its judgement stays on main; the next version must not inherit it.
+    review = app / "store/review"
+    review.mkdir(parents=True)
+    old = llm_finding(id="LLM-OLD-RELEASE", severity="blocker")
+    (review / "judgement.ios.json").write_text(json.dumps({"version": "0.9.0", "findings": [old]}))
+    (review / "judgement.android.json").write_text(json.dumps({"findings": [old]}))  # no version: unknown origin
+    _, doc = scan(app, tmp_path, monkeypatch, env={"STORE_REVIEW_DEMO_LOGIN": "x"})
+    assert "LLM-OLD-RELEASE" not in [f["id"] for f in doc["findings"]]
+    out = capsys.readouterr().out
+    assert f"skipped store/review/judgement.ios.json (version 0.9.0, app is {app_version(app)})" in out
+    assert f"skipped store/review/judgement.android.json (version none, app is {app_version(app)})" in out
+
+
+def test_scan_matches_judgement_version_without_build_number(make_app, tmp_path, monkeypatch):
+    app = make_app({"pubspec.yaml": "name: demo\nversion: 2.1.1+7\n"})
+    review = app / "store/review"
+    review.mkdir(parents=True)
+    (review / "judgement.ios.json").write_text(json.dumps({"version": "2.1.1", "findings": [llm_finding()]}))
+    _, doc = scan(app, tmp_path, monkeypatch)
+    assert "LLM-4.2" in [f["id"] for f in doc["findings"]]
