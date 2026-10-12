@@ -1,6 +1,8 @@
 # Store listing text the reviewer checks. The legal pages are served by the Cloud Run deploy (deploy/cloudrun/legal).
 privacy_policy_url: https://time-tracker-web-57342278583.us-central1.run.app/privacy
 account_deletion_url: https://time-tracker-web-57342278583.us-central1.run.app/delete-account
+support_url: https://time-tracker-web-57342278583.us-central1.run.app/support
+support_email: support@thepreviwer.dev
 ios:
   name: Time Tracker
   subtitle: Track jobs, entries and pay
