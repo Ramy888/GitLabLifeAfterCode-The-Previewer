@@ -1,0 +1,155 @@
+{
+  "version": "2.1.1",
+  "findings": [
+    {
+      "id": "LLM-AND-DELETE-INCOMPLETE",
+      "store": "android",
+      "layer": "reviewer",
+      "guideline": "Play User Data policy: Account deletion requirements",
+      "title": "In-app account deletion can wipe the data and then leave the account in place without telling the user",
+      "severity": "warning",
+      "weight": 5,
+      "source": "llm",
+      "confidence": 0.55,
+      "evidence": [
+        {
+          "path": "lib/src/features/authentication/presentation/delete_account_and_data_button.dart",
+          "line": 70,
+          "detail": "On requires-recent-login the jobs and entries are already deleted. If reauthenticate() returns false (cancelled or failed), the code falls through: no message, no sign-out, and the account still exists with its data erased. The user is told nothing."
+        },
+        {
+          "path": "lib/src/features/authentication/data/account_deletion_service.dart",
+          "line": 57,
+          "detail": "Data is deleted (line 57) before user.delete() (line 58). A failure at the second step leaves a half-deleted account, and store/data_safety.yaml advertises this flow as the deletion path."
+        },
+        {
+          "path": "lib/src/features/authentication/presentation/delete_account_and_data_button.dart",
+          "line": 30,
+          "detail": "The default re-auth dialog uses authProviders, which holds only EmailAuthProvider. A user who signed in anonymously (offered on the sign-in screen) has no credential to re-enter, so deletion cannot complete for them once Firebase asks for a recent login."
+        }
+      ],
+      "fix": {
+        "kind": "manual",
+        "recipe": "Re-authenticate before deleting any data (or delete the account first and clean up the data server-side). Show an error and keep the data when re-auth is cancelled. Handle anonymous users explicitly, since they need no re-auth or a different flow."
+      }
+    },
+    {
+      "id": "LLM-AND-PRIVACY-CONTACT",
+      "store": "android",
+      "layer": "reviewer",
+      "guideline": "Play User Data policy: Privacy policy must include developer contact information; Account deletion web link",
+      "title": "Privacy policy and deletion page give only a GitLab issue tracker as contact, which ordinary users cannot use",
+      "severity": "warning",
+      "weight": 4,
+      "source": "llm",
+      "confidence": 0.5,
+      "evidence": [
+        {
+          "path": "deploy/cloudrun/legal/privacy.html",
+          "line": 18,
+          "detail": "The only contact route is a confidential issue on a gitlab.com project. Filing one needs a GitLab account, and the project is a hackathon showcase repository. There is no developer email address or other contact."
+        },
+        {
+          "path": "deploy/cloudrun/legal/delete-account.html",
+          "line": 19,
+          "detail": "The 'Can't sign in?' fallback for users who cannot use the app is the same GitLab tracker. The Play-required web deletion link therefore has no usable request route for a user who lost access, and it asks them to post their email address in an issue."
+        },
+        {
+          "path": "store/listing.yaml",
+          "line": 3,
+          "detail": "privacy_policy_url and account_deletion_url both point at these pages."
+        }
+      ],
+      "fix": {
+        "kind": "handoff",
+        "recipe": "Add a monitored developer email address (or a contact form) to both legal pages and the Play Console developer contact. Offer a deletion request route that needs no third-party account."
+      }
+    },
+    {
+      "id": "LLM-AND-POLICY-NAME-MISMATCH",
+      "store": "android",
+      "layer": "reviewer",
+      "guideline": "Play User Data policy: Data safety form must match the privacy policy and actual behaviour",
+      "title": "Data safety declares an optional display name, but the privacy policy never mentions it",
+      "severity": "warning",
+      "weight": 3,
+      "source": "llm",
+      "confidence": 0.6,
+      "evidence": [
+        {
+          "path": "store/data_safety.yaml",
+          "line": 8,
+          "detail": "Declares 'Name (optional display name)' as collected."
+        },
+        {
+          "path": "lib/src/features/authentication/presentation/custom_profile_screen.dart",
+          "line": 28,
+          "detail": "EditableUserDisplayName lets the user set a display name, which Firebase Auth stores on the profile. UserAvatar on line 26 also reads the profile photo URL."
+        },
+        {
+          "path": "deploy/cloudrun/legal/privacy.html",
+          "line": 8,
+          "detail": "'What we store' lists the email, password hash, anonymous ID, job names, rates, entry times and comments. It omits the display name and any profile photo URL."
+        }
+      ],
+      "fix": {
+        "kind": "manual",
+        "recipe": "Add the optional display name (and profile photo URL, if it can be set) to the 'What we store' list in privacy.html, so the policy and the Data safety form say the same thing."
+      }
+    },
+    {
+      "id": "LLM-AND-APP-ACCESS-SEED",
+      "store": "android",
+      "layer": "reviewer",
+      "guideline": "Play App access; Minimum functionality",
+      "title": "Review notes promise a demo account that already has two jobs with entries, but nothing in the repo creates that data",
+      "severity": "warning",
+      "weight": 4,
+      "source": "llm",
+      "confidence": 0.5,
+      "evidence": [
+        {
+          "path": "store/review_notes.yaml",
+          "line": 4,
+          "detail": "States the demo account 'already has two jobs with time entries'. A search of the repo finds no seed script, fixture or CI step that creates the account or its Firestore data."
+        },
+        {
+          "path": "lib/src/features/jobs/presentation/edit_job_screen/edit_job_screen.dart",
+          "line": 52,
+          "detail": "Jobs, job entries and the Entries totals only have content once the account has data. With an empty account the reviewer sees empty lists, and the per-day totals, pay and entry editing are not reachable until they add data themselves."
+        },
+        {
+          "path": "store/review_notes.yaml",
+          "line": 2,
+          "detail": "The notes also name Delete account as the deletion path. If a reviewer runs it on the shared demo account, the account and its data are gone for the next review."
+        }
+      ],
+      "fix": {
+        "kind": "handoff",
+        "recipe": "Create the reviewer account and seed two jobs with entries in the production Firebase project. Re-seed it before each submission, and tell the reviewer in the notes that they can use the anonymous sign-in to test deletion instead."
+      }
+    },
+    {
+      "id": "LLM-AND-ERROR-WIDGET-LEAK",
+      "store": "android",
+      "layer": "reviewer",
+      "guideline": "Play Minimum functionality / broken experience (app stability and quality)",
+      "title": "Release builds show a raw exception dump on a red screen whenever a widget fails to build",
+      "severity": "info",
+      "weight": 2,
+      "source": "llm",
+      "confidence": 0.45,
+      "evidence": [
+        {
+          "path": "lib/main.dart",
+          "line": 38,
+          "detail": "ErrorWidget.builder is set unconditionally, with no kDebugMode guard. It renders details.toString() (line 44) under a red 'An error occurred' app bar, so users and reviewers see stack text. Errors are only debugPrint-ed, so there is no crash reporting either."
+        }
+      ],
+      "fix": {
+        "kind": "manual",
+        "recipe": "Show a friendly message with a retry action in release builds and keep the detailed output for kDebugMode only."
+      }
+    }
+  ]
+}
