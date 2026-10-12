@@ -8,7 +8,7 @@ from pathlib import Path
 import yaml
 
 from store_review.report import build_document
-from store_review.rules import run_checks
+from store_review.rules import load_pack, run_checks
 from store_review.snapshot import load_snapshot
 
 REPO = Path(__file__).resolve().parents[3]
@@ -61,6 +61,10 @@ def test_fixes_clear_every_blocker(tmp_path):
     plist_path = tmp_path / "ios/Runner/Info.plist"
     info = plistlib.loads(plist_path.read_bytes())
     info["ITSAppUsesNonExemptEncryption"] = False
+    deps = load_snapshot(tmp_path, env={}).dependencies
+    for plugin, keys in load_pack("ios")["permission_plugins"].items():
+        for key in keys if plugin in deps else ():
+            info.setdefault(key, f"Lets you pick a photo for your profile ({key}).")
     plist_path.write_bytes(plistlib.dumps(info))
     (tmp_path / "ios/Runner/PrivacyInfo.xcprivacy").write_bytes(plistlib.dumps({"NSPrivacyAccessedAPITypes": [{
         "NSPrivacyAccessedAPIType": "NSPrivacyAccessedAPICategoryUserDefaults",
