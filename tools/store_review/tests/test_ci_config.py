@@ -46,9 +46,29 @@ def test_release_branches_validate_inputs_then_package():
     cfg = config()
     for job in ("review:inputs", "package:stores"):
         rules = [r["if"] for r in cfg[job]["rules"]]
-        assert any("store-review" in r for r in rules) and any("CI_COMMIT_TAG" in r for r in rules)
+        assert any("CI_MERGE_REQUEST_SOURCE_BRANCH_NAME" in r for r in rules)
+        assert any("CI_COMMIT_MESSAGE" in r for r in rules)  # the release merge on the default branch
     assert "review:inputs" in cfg["package:stores"]["needs"]
     assert any("merge_request_event" in r["if"] for r in cfg["workflow"]["rules"])
+
+
+def test_merging_a_release_mr_publishes_the_release():
+    import re
+    cfg = config()
+    rule = cfg["release:gitlab"]["rules"][0]["if"]
+    assert "$CI_DEFAULT_BRANCH" in rule
+    regex = rule.split("=~", 1)[1].strip().strip("/").replace("\\/", "/")
+    assert re.search(regex, "Merge branch 'store-review/2.1.1' into 'main'\n\nStore release 2.1.1")
+    assert not re.search(regex, "Merge branch 'store-review-fix/and-targetsdk' into 'main'")
+    release = cfg["release:gitlab"]["release"]
+    assert release["tag_name"] == "v$RELEASE_VERSION" and release["ref"] == "$CI_COMMIT_SHA"
+    assert {"package:stores", "review:scan"} <= {n if isinstance(n, str) else n["job"] for n in cfg["release:gitlab"]["needs"]}
+
+
+def test_flow_branches_skip_push_pipelines():
+    cfg = config()
+    never = [r["if"] for r in cfg["workflow"]["rules"] if r.get("when") == "never"]
+    assert any("store-review(-fix)?" in r for r in never)
 
 
 def test_fixer_branches_do_not_trigger_release_jobs():
