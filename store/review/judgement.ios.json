@@ -1,0 +1,69 @@
+{
+  "version": "2.1.1",
+  "findings": [
+    {
+      "id": "LLM-IOS-DELETE-PARTIAL",
+      "store": "ios",
+      "layer": "reviewer",
+      "guideline": "Apple 5.1.1(v) Account Deletion; 2.1 App Completeness",
+      "title": "Account deletion can erase the data, then silently leave the account in place",
+      "severity": "warning",
+      "weight": 5,
+      "source": "llm",
+      "confidence": 0.55,
+      "evidence": [
+        {
+          "path": "lib/src/features/authentication/presentation/delete_account_and_data_button.dart",
+          "line": 70,
+          "detail": "On requires-recent-login the jobs and entries are already deleted. If reauthenticate() returns false (the user cancels or fails), the code falls through with no error, no message and no sign-out. The account survives with its data wiped, and the user is never told."
+        },
+        {
+          "path": "lib/src/features/authentication/data/account_deletion_service.dart",
+          "line": 56,
+          "detail": "Data is deleted before user.delete(), so a failure at the second step is not recoverable or retryable from the user's side."
+        },
+        {
+          "path": "lib/src/features/authentication/presentation/delete_account_and_data_button.dart",
+          "line": 22,
+          "detail": "The default re-auth dialog is built from authProviders, which holds only EmailAuthProvider. An anonymous user (offered on the sign-in screen) has no credential to re-enter, so this path cannot complete for them."
+        }
+      ],
+      "fix": {
+        "kind": "manual",
+        "recipe": "When reauthenticate() returns false, show a message that the account was not deleted and that the data is already removed. For anonymous users, either skip re-auth and call user.delete() after a fresh signInAnonymously(), or tell them to sign out and in again. Alternatively reauthenticate first and delete data second. Add a widget test for the cancelled re-auth path."
+      }
+    },
+    {
+      "id": "LLM-IOS-SUPPORT-CONTACT",
+      "store": "ios",
+      "layer": "reviewer",
+      "guideline": "Apple 1.5 Developer Information; 5.1.1(i) Privacy Policy contact",
+      "title": "The only user contact is a confidential GitLab issue, and the listing has no support URL",
+      "severity": "warning",
+      "weight": 4,
+      "source": "llm",
+      "confidence": 0.6,
+      "evidence": [
+        {
+          "path": "deploy/cloudrun/legal/privacy.html",
+          "line": 18,
+          "detail": "Contact for questions and requests is a confidential issue on a GitLab project. Ordinary App Store users cannot be expected to have a GitLab account, and the link points at a hackathon project path."
+        },
+        {
+          "path": "deploy/cloudrun/legal/delete-account.html",
+          "line": 19,
+          "detail": "The fallback for users who cannot sign in (so cannot use in-app deletion) is the same GitLab issue form. They have no practical way to request deletion."
+        },
+        {
+          "path": "store/listing.yaml",
+          "line": 1,
+          "detail": "The listing defines privacy_policy_url and account_deletion_url but no support_url or contact email. App Store Connect requires a Support URL and reviewers check that it works."
+        }
+      ],
+      "fix": {
+        "kind": "handoff",
+        "recipe": "Provide a monitored support email or a public support page. Add support_url to store/listing.yaml, and replace the GitLab link in privacy.html and delete-account.html with that contact. Redeploy the Cloud Run legal pages."
+      }
+    }
+  ]
+}
