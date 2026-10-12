@@ -1,15 +1,22 @@
 # The Previewer pipeline.
 # test -> build -> review -> package -> deploy
 # Release MRs from the Duo flow use branches named store-review/<version>: their pipeline validates the human's
-# inputs and builds the per-store packages. Merging that MR is the human's approval of the outcome.
+# inputs and builds the per-store packages. Merging that MR is the human's approval of the outcome: the merge
+# pipeline on the default branch then tags v<version> and publishes the GitLab Release (release:gitlab).
 
 workflow:
   rules:
     - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+    # The flow pushes fix and release branches before opening their MRs; the MR pipeline covers them.
+    - if: $CI_COMMIT_BRANCH =~ /^store-review(-fix)?\//
+      when: never
     - if: $CI_COMMIT_BRANCH && $CI_OPEN_MERGE_REQUESTS
       when: never
     - if: $CI_COMMIT_BRANCH
-    - if: $CI_COMMIT_TAG
+    # Tags are created by release:gitlab, which already published the release from the merge pipeline.
+
+.release-merge: &release-merge
+  if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH && $CI_COMMIT_MESSAGE =~ /Merge branch 'store-review\/\d/
 
 stages: [test, build, review, package, deploy]
 
@@ -79,8 +86,11 @@ build:android:
   script:
     - sh tools/ci/android_signing.sh
     - flutter build appbundle --release
+    - echo "AAB_JOB_ID=$CI_JOB_ID" > aab.env
   artifacts:
     paths: [build/app/outputs/bundle/release/app-release.aab]
+    reports:
+      dotenv: aab.env
     expire_in: 90 days
 
 review:benchmark:
@@ -101,10 +111,13 @@ review:scan:
     - uv run store-review scan --app $CI_PROJECT_DIR --out $CI_PROJECT_DIR/findings.json
         --report $CI_PROJECT_DIR/review-report.md --benchmark $CI_PROJECT_DIR/benchmark.json
     - uv run store-review handoff --findings $CI_PROJECT_DIR/findings.json | tee $CI_PROJECT_DIR/handoff.md
+    - echo "SCAN_JOB_ID=$CI_JOB_ID" > $CI_PROJECT_DIR/scan.env
   artifacts:
     paths: [findings.json, review-report.md, handoff.md]
+    reports:
+      dotenv: scan.env
     expose_as: store review
-    expire_in: 30 days
+    expire_in: 90 days
 
 review:inputs:
   extends: .engine
@@ -112,7 +125,7 @@ review:inputs:
   needs: [engine:test]
   rules:
     - if: $CI_MERGE_REQUEST_SOURCE_BRANCH_NAME =~ /^store-review\/\d/
-    - if: $CI_COMMIT_TAG
+    - *release-merge
   script:
     - cd $ENGINE_DIR && uv run store-review validate-inputs --app $CI_PROJECT_DIR
 
@@ -122,9 +135,12 @@ package:stores:
   needs: [review:scan, review:inputs]
   rules:
     - if: $CI_MERGE_REQUEST_SOURCE_BRANCH_NAME =~ /^store-review\/\d/
-    - if: $CI_COMMIT_TAG
+    - *release-merge
   script:
     - cd $ENGINE_DIR
+    # The approved version comes from the merged release branch name (store-review/<version>).
+    - echo "RELEASE_VERSION=$(printf '%s' "$CI_COMMIT_MESSAGE" | sed -n "s|.*Merge branch 'store-review/\([0-9][^']*\)'.*|\1|p" | head -n 1)" > $CI_PROJECT_DIR/release.env
+    - echo "PACKAGE_JOB_ID=$CI_JOB_ID" >> $CI_PROJECT_DIR/release.env
     # Exit 4 (a store still blocked) is allowed; any other failure must fail the job whatever the store order.
     - blocked=0; broken=0
     - for store in ios android; do
@@ -140,6 +156,8 @@ package:stores:
   artifacts:
     when: always  # keep the unblocked store's package when the other store exits 4
     paths: [dist/store-package]
+    reports:
+      dotenv: release.env
     expire_in: 90 days
 
 release:gitlab:
@@ -151,21 +169,23 @@ release:gitlab:
     - job: build:android
       optional: true
   rules:
-    - if: $CI_COMMIT_TAG
+    - *release-merge
   script:
-    - echo "Creating release $CI_COMMIT_TAG"
+    - test -n "$RELEASE_VERSION" || { echo "No store-review/<version> branch in the merge commit message" >&2; exit 1; }
+    - echo "Creating release v$RELEASE_VERSION at $CI_COMMIT_SHA"
   release:
-    tag_name: $CI_COMMIT_TAG
-    name: "Store review $CI_COMMIT_TAG"
+    tag_name: v$RELEASE_VERSION
+    ref: $CI_COMMIT_SHA
+    name: "Store review v$RELEASE_VERSION"
     description: review-report.md
     assets:
       links:
         - name: Store packages
-          url: "$CI_PROJECT_URL/-/jobs/artifacts/$CI_COMMIT_TAG/browse/dist/store-package?job=package:stores"
+          url: "$CI_PROJECT_URL/-/jobs/$PACKAGE_JOB_ID/artifacts/browse/dist/store-package"
         - name: findings.json
-          url: "$CI_PROJECT_URL/-/jobs/artifacts/$CI_COMMIT_TAG/raw/findings.json?job=review:scan"
+          url: "$CI_PROJECT_URL/-/jobs/$SCAN_JOB_ID/artifacts/raw/findings.json"
         - name: Android app bundle (AAB)
-          url: "$CI_PROJECT_URL/-/jobs/artifacts/$CI_COMMIT_TAG/raw/build/app/outputs/bundle/release/app-release.aab?job=build:android"
+          url: "$CI_PROJECT_URL/-/jobs/$AAB_JOB_ID/artifacts/raw/build/app/outputs/bundle/release/app-release.aab"
 
 deploy:cloudrun:
   stage: deploy
