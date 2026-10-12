@@ -1,9 +1,75 @@
-# Time Tracking app with Flutter & Firebase
+# The Previewer
 
-> **The Previewer: reviews your app the way Apple and Google will, before you submit.** This fork adds a GitLab Duo flow that reviews the app the way Apple App Store review
-> and Google Play review would, before submission: findings with guideline citations, fix merge requests, one
-> human checklist, a readiness score, and a ready-to-submit package per store. See [docs/STORE_REVIEW.md](docs/STORE_REVIEW.md).
-> Original project: [bizz84/starter_architecture_flutter_firebase](https://github.com/bizz84/starter_architecture_flutter_firebase) (MIT).
+**Reviews your app the way Apple and Google will, before you submit.**
+
+The Previewer is a GitLab Duo custom flow that rehearses **App Store** and **Google Play** review for a Flutter app.
+You assign a release issue; agents review the app against the stores' guidelines, open fix merge requests, ask you
+one checklist, and hand back a release merge request with a readiness score and a ready-to-submit package per store.
+**Merging that MR is your approval** (Supervised autonomy). Nothing is ever uploaded to a store.
+
+Built for the GitLab "Life After Code" hackathon, **Path B**: a fork of the MIT project
+[bizz84/starter_architecture_flutter_firebase](https://github.com/bizz84/starter_architecture_flutter_firebase)
+(a Flutter + Firebase time tracker), with all automation and the deployment added on or after Oct 5, 2026.
+
+| | |
+|---|---|
+| Live app (Google Cloud Run) | https://time-tracker-web-57342278583.us-central1.run.app |
+| Privacy policy / account deletion | [/privacy](https://time-tracker-web-57342278583.us-central1.run.app/privacy) · [/delete-account](https://time-tracker-web-57342278583.us-central1.run.app/delete-account) |
+| A full review, end to end | [Issue #2 "Release v2.1.0"](https://gitlab.com/gitlab-ai-hackathon/transcend-october-2026/1947121/showcase/-/work_items/2): handoff → fix MRs !1–!7 → resume → release MR [!8](https://gitlab.com/gitlab-ai-hackathon/transcend-october-2026/1947121/showcase/-/merge_requests/8) |
+| Flow definition | [`.gitlab/duo/flows/store-review.yaml`](.gitlab/duo/flows/store-review.yaml) · guide: [docs/STORE_REVIEW.md](docs/STORE_REVIEW.md) |
+| Pipelines | [https://gitlab.com/gitlab-ai-hackathon/transcend-october-2026/1947121/showcase/-/pipelines](https://gitlab.com/gitlab-ai-hackathon/transcend-october-2026/1947121/showcase/-/pipelines) |
+
+## Before and after
+
+| Before (manual, fragmented) | After (The Previewer) |
+|---|---|
+| Submit, wait a day or more, read a rejection, guess the fix, resubmit | Rehearse both reviews in minutes, before the first submission |
+| Store rules spread across Apple's guidelines, Play policy and Data safety forms | Rule packs that cite the guideline for every finding |
+| Fixes done by hand, one rejection at a time | One fix MR per auto-fixable finding, opened by an agent |
+| No signal of readiness | Per-store readiness 0–100 with a confidence range; any blocker caps it at 40 |
+| Rejection replies written from scratch | `@flow rejection: <message>`: an advocate decides fix or appeal and drafts the appeal with evidence |
+
+What the first run found on this app, all real: targetSdk 34 below Play's required 36, release builds signed with the
+debug key, **no INTERNET permission in release builds** (sign-in and Firestore would fail in production), no iOS
+privacy manifest, template app names, and an account deletion that left the user's data behind. All are fixed in
+this repository; both stores now score 100 with no blockers.
+
+## How it uses the GitLab Duo Agent Platform
+
+- **One custom flow, five agents**: a governor delegates to an Apple reviewer, a Google Play reviewer, a fixer (opens
+  MRs) and a rejection advocate. Triggers: **Assign** (start a review) and **Mention** (`resume`, `rejection:`).
+- **A deterministic engine the agents call** ([`tools/store_review`](tools/store_review)): it scans the app, scores it,
+  validates the human's inputs and builds the store packages, so scores never come from a model's guess. The agents
+  add judgement findings with a confidence, which the engine merges into the score.
+- **Benchmarked**: a Rejection Corpus of 42 seeded cases; precision 0.971, recall 0.971, with two known gaps kept on
+  purpose. CI fails below 0.90 / 0.85.
+- **CI/CD as the gate**: the release MR pipeline re-checks every input (URLs return 200, the demo login exists as a
+  masked variable), rebuilds the findings with the reviewers' judgement, and builds the packages and a signed AAB.
+  Merging it publishes a GitLab Release with the report and artifacts.
+
+## Lifecycle stages covered
+
+**Plan** (release issue and one checklist) · **Create** (fix MRs) · **Verify** (scan, tests, benchmark) ·
+**Secure** (privacy manifest, release signing, secrets only in masked variables, keyless deploy) · **Package**
+(per-store packages, signed AAB) · **Release** (release MR, GitLab Release on merge) · **Configure** (store listing,
+review notes, CI/CD variables) · **Govern** (Supervised approval by merge, cited guidelines, rejection advocate).
+
+## Google Cloud
+
+The web app runs on **Cloud Run** (nginx serving the Flutter web build plus the legal pages). GitLab CI deploys it
+with **Workload Identity Federation**: no service-account keys exist; the trust is limited to this project's protected
+branches. Firebase Auth and Firestore (owner-only rules) back the app. Deploy code: [`deploy/cloudrun`](deploy/cloudrun),
+setup: [docs/KEYLESS_DEPLOY.md](docs/KEYLESS_DEPLOY.md).
+
+## License
+
+MIT ([LICENSE.md](LICENSE.md)): the original app by Andrea Bizzotto, and The Previewer's additions by Ramy Magdy.
+Third-party components keep their own OSI-approved licenses (mostly BSD-3-Clause for the Flutter and Firebase
+packages; MIT for Riverpod, PyYAML and pytest).
+
+---
+
+## The original app
 
 A time tracking application built with Flutter & Firebase: 
 
