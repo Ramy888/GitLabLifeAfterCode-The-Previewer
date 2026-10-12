@@ -48,7 +48,10 @@ def build_document(app: dict, findings: list[Finding], benchmark: dict | None = 
 
 
 def app_info(snap: AppSnapshot) -> dict:
-    return {"name": snap.name, "version": snap.version}
+    """The name reviewers and users see: the store listing's, falling back to the pubspec package name."""
+    listing = snap.store["listing"]
+    listed = [(listing.get(store) or {}).get("name") for store in ("ios", "android")]
+    return {"name": next((n for n in listed if n), snap.name), "version": snap.version}
 
 
 def load_findings(doc: dict) -> list[Finding]:

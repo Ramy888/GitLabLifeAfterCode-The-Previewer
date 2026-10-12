@@ -199,3 +199,18 @@ def test_scan_matches_judgement_version_without_build_number(make_app, tmp_path,
     (review / "judgement.ios.json").write_text(json.dumps({"version": "2.1.1", "findings": [llm_finding()]}))
     _, doc = scan(app, tmp_path, monkeypatch)
     assert "LLM-4.2" in [f["id"] for f in doc["findings"]]
+
+
+def test_report_title_uses_the_store_listing_name(make_app, tmp_path, monkeypatch):
+    # The Dart package name (pubspec) is not what reviewers or users see; the listing name is.
+    app = make_app({"pubspec.yaml": "name: starter_architecture_flutter_firebase\nversion: 2.1.1\n",
+                    "store/listing.yaml": "ios:\n  name: Time Tracker\nandroid:\n  name: Time Tracker\n"})
+    _, doc = scan(app, tmp_path, monkeypatch)
+    assert doc["app"]["name"] == "Time Tracker"
+    assert (tmp_path / "report.md").read_text().startswith("# Store review: Time Tracker 2.1.1")
+
+
+def test_report_title_falls_back_to_the_package_name(make_app, tmp_path, monkeypatch):
+    app = make_app({"pubspec.yaml": "name: demo_app\nversion: 1.0.0\n"})
+    _, doc = scan(app, tmp_path, monkeypatch)
+    assert doc["app"]["name"] == "demo_app"
