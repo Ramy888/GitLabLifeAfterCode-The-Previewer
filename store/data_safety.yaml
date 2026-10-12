@@ -3,5 +3,14 @@ declared_permissions: []
 data_collected:
   - type: Email address
     purpose: Account management
+  - type: User IDs (Firebase user ID, including anonymous accounts)
+    purpose: Account management
+  - type: Name (optional display name)
+    purpose: Account management
   - type: App activity (jobs and time entries)
     purpose: App functionality
+  - type: Other user-generated content (comments on time entries)
+    purpose: App functionality
+data_shared: []
+encrypted_in_transit: true
+deletion_request: in-app (Account tab > Delete account) and https://time-tracker-web-57342278583.us-central1.run.app/delete-account

@@ -1,5 +1,6 @@
 import 'package:firebase_ui_auth/firebase_ui_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:starter_architecture_flutter_firebase/src/common_widgets/privacy_policy_link.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:starter_architecture_flutter_firebase/src/constants/app_sizes.dart';
 import 'package:starter_architecture_flutter_firebase/src/features/authentication/data/firebase_auth_repository.dart';
@@ -59,6 +60,7 @@ class SignInAnonymouslyFooter extends ConsumerWidget {
           },
           child: const Text('Sign in anonymously'),
         ),
+        const PrivacyPolicyLink(),
       ],
     );
   }

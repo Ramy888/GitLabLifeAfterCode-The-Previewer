@@ -1,6 +1,7 @@
 import 'package:firebase_ui_auth/firebase_ui_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:starter_architecture_flutter_firebase/src/common_widgets/privacy_policy_link.dart';
 import 'package:starter_architecture_flutter_firebase/src/common_widgets/responsive_center.dart';
 import 'package:starter_architecture_flutter_firebase/src/features/authentication/data/firebase_auth_repository.dart';
 import 'package:starter_architecture_flutter_firebase/src/features/authentication/presentation/delete_account_and_data_button.dart';
@@ -36,6 +37,8 @@ class CustomProfileScreen extends ConsumerWidget {
             SignOutButton(auth: auth, variant: ButtonVariant.outlined),
             const SizedBox(height: 8),
             const DeleteAccountAndDataButton(),
+            const SizedBox(height: 16),
+            const Center(child: PrivacyPolicyLink()),
           ],
         ),
       ),

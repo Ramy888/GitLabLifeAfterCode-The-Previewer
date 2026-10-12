@@ -1,6 +1,8 @@
 # Notes for store reviewers. Never put credentials here: the demo login lives in CI/CD variable STORE_REVIEW_DEMO_LOGIN.
-account_deletion_path: Account tab > Profile > Delete account
+account_deletion_path: Account tab > Delete account (deletes jobs and entries, then the account)
 notes:
-  - Sign in with the demo account, open Jobs, create a job, then add entries to see the totals.
+  - Sign in with the demo account (email and password). It already has two jobs with time entries.
+  - Jobs lists them; tap a job to see its entries, or + to add a job. Entries shows the totals per day.
+  - The privacy policy is linked from the sign-in screen and the Account tab.
 answers:
   uses_non_exempt_encryption: 'no'

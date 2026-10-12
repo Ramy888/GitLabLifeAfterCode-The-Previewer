@@ -12,6 +12,9 @@ import 'package:url_launcher/url_launcher.dart';
 class MyApp extends ConsumerWidget {
   const MyApp({super.key});
 
+  /// This app's App Store Connect Apple ID, passed at build time with `--dart-define=IOS_APP_STORE_ID=<id>`.
+  static const iosAppStoreId = String.fromEnvironment('IOS_APP_STORE_ID');
+
   static const primaryColor = Colors.indigo;
 
   @override
@@ -23,42 +26,44 @@ class MyApp extends ConsumerWidget {
         // * Important: Use AppStartupWidget to wrap ForceUpdateWidget otherwise you will get this error:
         // * Navigator operation requested with a context that does not include a Navigator.
         // * The context used to push or pop routes from the Navigator must be that of a widget that is a descendant of a Navigator widget.
+        final routed = GoRouterDelegateListener(child: child!);
         return AppStartupWidget(
-          onLoaded: (_) => ForceUpdateWidget(
-            navigatorKey: goRouter.routerDelegate.navigatorKey,
-            forceUpdateClient: ForceUpdateClient(
-              // * Real apps should fetch this from an API endpoint or via
-              // * Firebase Remote Config
-              fetchRequiredVersion: () => Future.value('2.0.0'),
-              // * Example ID from this app: https://fluttertips.dev/
-              // * To avoid mistakes, store the ID as an environment variable and
-              // * read it with String.fromEnvironment
-              iosAppStoreId: '6482293361',
-            ),
-            allowCancel: false,
-            showForceUpdateAlert: (context, allowCancel) => showAlertDialog(
-              context: context,
-              title: 'App Update Required',
-              content: 'Please update to continue using the app.',
-              cancelActionText: allowCancel ? 'Later' : null,
-              defaultActionText: 'Update Now',
-            ),
-            showStoreListing: (storeUrl) async {
-              if (await canLaunchUrl(storeUrl)) {
-                await launchUrl(
-                  storeUrl,
-                  // * Open app store app directly (or fallback to browser)
-                  mode: LaunchMode.externalApplication,
-                );
-              } else {
-                log('Cannot launch URL: $storeUrl');
-              }
-            },
-            onException: (e, st) {
-              log(e.toString());
-            },
-            child: GoRouterDelegateListener(child: child!),
-          ),
+          // The force-update gate needs this app's own App Store ID; without one it stays off.
+          onLoaded: (_) => iosAppStoreId.isEmpty
+              ? routed
+              : ForceUpdateWidget(
+                  navigatorKey: goRouter.routerDelegate.navigatorKey,
+                  forceUpdateClient: ForceUpdateClient(
+                    // * Real apps should fetch this from an API endpoint or via
+                    // * Firebase Remote Config
+                    fetchRequiredVersion: () => Future.value('2.0.0'),
+                    iosAppStoreId: iosAppStoreId,
+                  ),
+                  allowCancel: false,
+                  showForceUpdateAlert: (context, allowCancel) =>
+                      showAlertDialog(
+                    context: context,
+                    title: 'App Update Required',
+                    content: 'Please update to continue using the app.',
+                    cancelActionText: allowCancel ? 'Later' : null,
+                    defaultActionText: 'Update Now',
+                  ),
+                  showStoreListing: (storeUrl) async {
+                    if (await canLaunchUrl(storeUrl)) {
+                      await launchUrl(
+                        storeUrl,
+                        // * Open app store app directly (or fallback to browser)
+                        mode: LaunchMode.externalApplication,
+                      );
+                    } else {
+                      log('Cannot launch URL: $storeUrl');
+                    }
+                  },
+                  onException: (e, st) {
+                    log(e.toString());
+                  },
+                  child: routed,
+                ),
         );
       },
       theme: ThemeData(
