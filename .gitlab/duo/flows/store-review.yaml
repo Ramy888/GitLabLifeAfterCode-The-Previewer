@@ -96,9 +96,13 @@ prompts:
            false for no). Do all of this on a new branch named
            store-review/<version from pubspec.yaml>. Run validate-inputs with --skip-ci-variables (this session
            cannot see CI/CD variables; the release MR pipeline checks STORE_REVIEW_DEMO_LOGIN). If it exits 3, post its output as a short
-           note listing only what is still missing, and stop. If it passes, commit, open a merge request titled
-           "Store release <version>: ready to submit", and post a note linking it. Its pipeline rebuilds the
-           findings and the per-store packages; merging it is the human's approval of the outcome.
+           note listing only what is still missing, and stop. If it passes, delegate to ios_reviewer and android_reviewer
+           again (the fixes have landed since the first pass), and save their files as store/review/judgement.ios.json and
+           store/review/judgement.android.json. Run scan: it merges those files, so its readiness includes their judgement.
+           Commit everything, open a merge request titled "Store release <version>: ready to submit" whose description
+           has both stores' status, readiness and band from that scan, and post a note linking it. Its pipeline rebuilds
+           the findings (with the committed judgement) and the per-store packages; merging it is the human's approval
+           of the outcome, and the merge pipeline publishes the GitLab Release.
         3. REJECTION (the goal contains "rejection" or a store rejection message): delegate to advocate with the
            message. Post its verdict. If it says the rejection is valid, delegate to fixer for the matching finding.
 

@@ -146,3 +146,26 @@ def test_handoff_asks_to_confirm_ci_variables_instead_of_calling_them_missing(ap
     assert "already set" in demo and "Put it in" not in demo
     privacy = next(line for line in text.splitlines() if "**privacy_policy_url**" in line)
     assert "Put it in `store/listing.yaml`" in privacy
+
+
+def test_scan_merges_committed_judgement_into_scores_and_report(app, tmp_path, monkeypatch):
+    # The release MR carries the reviewer agents' judgement, so CI scores include it.
+    _, before = scan(app, tmp_path, monkeypatch, env={"STORE_REVIEW_DEMO_LOGIN": "x"})
+    review = app / "store/review"
+    review.mkdir(parents=True)
+    blocker = llm_finding(id="LLM-IOS-FOREIGN-ID", severity="blocker", confidence=0.8, title="Foreign App Store ID")
+    (review / "judgement.ios.json").write_text(json.dumps({"findings": [blocker]}))
+    _, after = scan(app, tmp_path, monkeypatch, env={"STORE_REVIEW_DEMO_LOGIN": "x"})
+    assert "LLM-IOS-FOREIGN-ID" in [f["id"] for f in after["findings"]]
+    assert after["scores"]["ios"]["blockers"] == before["scores"]["ios"]["blockers"] + 1
+    assert after["scores"]["ios"]["status"] == "blocked"
+    assert "LLM-IOS-FOREIGN-ID" in (tmp_path / "report.md").read_text()
+
+
+def test_scan_rejects_a_malformed_judgement_file(app, tmp_path, monkeypatch, capsys):
+    review = app / "store/review"
+    review.mkdir(parents=True)
+    (review / "judgement.android.json").write_text(json.dumps({"findings": [llm_finding(source="rule")]}))
+    out = tmp_path / "findings.json"
+    assert main(["scan", "--app", str(app), "--out", str(out)]) == 2
+    assert "judgement.android.json" in capsys.readouterr().err

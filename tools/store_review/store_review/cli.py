@@ -31,10 +31,21 @@ def _write_json(path: str, doc: dict) -> None:
     Path(path).write_text(json.dumps(doc, indent=2, ensure_ascii=False) + "\n")
 
 
+JUDGEMENT_GLOB = "store/review/judgement.*.json"
+
+
 def cmd_scan(args: argparse.Namespace) -> int:
     snap = load_snapshot(args.app)
     benchmark = _read_json(args.benchmark) if args.benchmark else None
     doc = build_document(app_info(snap), run_checks(snap), benchmark)
+    # Reviewer-agent judgement committed with a release (by the flow's resume) counts toward the scores.
+    for path in sorted(Path(args.app).glob(JUDGEMENT_GLOB)):
+        try:
+            doc = merge_llm(doc, _read_json(path))
+        except (SchemaError, json.JSONDecodeError) as err:
+            print(f"{path.relative_to(args.app)} rejected: {err}", file=sys.stderr)
+            return EXIT_SCHEMA
+        print(f"merged reviewer judgement from {path.relative_to(args.app)}")
     _write_json(args.out, doc)
     if args.report:
         Path(args.report).write_text(render_markdown(doc))
