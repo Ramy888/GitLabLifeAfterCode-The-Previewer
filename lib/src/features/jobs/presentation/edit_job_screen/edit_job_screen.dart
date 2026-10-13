@@ -4,7 +4,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:starter_architecture_flutter_firebase/src/common_widgets/responsive_center.dart';
-import 'package:starter_architecture_flutter_firebase/src/constants/breakpoints.dart';
 import 'package:starter_architecture_flutter_firebase/src/features/jobs/domain/job.dart';
 import 'package:starter_architecture_flutter_firebase/src/features/jobs/presentation/edit_job_screen/edit_job_screen_controller.dart';
 import 'package:starter_architecture_flutter_firebase/src/utils/async_value_ui.dart';
@@ -84,7 +83,7 @@ class _EditJobPageState extends ConsumerState<EditJobScreen> {
   Widget _buildContents() {
     return SingleChildScrollView(
       child: ResponsiveCenter(
-        maxContentWidth: Breakpoint.tablet,
+        maxContentWidth: 720,
         padding: const EdgeInsets.all(16.0),
         child: Card(
           child: Padding(
