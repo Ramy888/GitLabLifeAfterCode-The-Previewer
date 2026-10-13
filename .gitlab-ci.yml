@@ -70,7 +70,7 @@ build:web:
   stage: build
   needs: [flutter:test]
   script:
-    - flutter build web --release
+    - flutter build web --release --dart-define=APP_VERSION=$(grep "^version:" pubspec.yaml | cut -d" " -f2)
     # deploy.sh refuses a build made with the stub Firebase config.
     - if [ -f .firebase-options-stub ]; then touch build/web/.firebase-options-stub; fi
   artifacts:
