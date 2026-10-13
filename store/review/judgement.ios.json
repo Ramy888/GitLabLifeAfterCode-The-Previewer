@@ -1,68 +1,154 @@
 {
-  "version": "2.1.1",
+  "version": "2.1.2",
   "findings": [
     {
-      "id": "LLM-IOS-DELETE-PARTIAL",
+      "id": "LLM-IOS-ENTRIES-TAB-CRASH-RACE",
       "store": "ios",
       "layer": "reviewer",
-      "guideline": "Apple 5.1.1(v) Account Deletion; 2.1 App Completeness",
-      "title": "Account deletion can erase the data, then silently leave the account in place",
+      "guideline": "iOS 2.1 App Completeness (crashes and bugs)",
+      "title": "Entries tab can fail with an unhandled lookup error after a job is deleted",
       "severity": "warning",
       "weight": 5,
       "source": "llm",
-      "confidence": 0.55,
+      "confidence": 0.5,
       "evidence": [
         {
-          "path": "lib/src/features/authentication/presentation/delete_account_and_data_button.dart",
-          "line": 70,
-          "detail": "On requires-recent-login the jobs and entries are already deleted. If reauthenticate() returns false (the user cancels or fails), the code falls through with no error, no message and no sign-out. The account survives with its data wiped, and the user is never told."
+          "path": "lib/src/features/entries/application/entries_service.dart",
+          "line": 35,
+          "detail": "The entries and jobs streams are combined and each entry is matched to its job with jobs.firstWhere(...) and no orElse. If the jobs snapshot arrives before the entries snapshot reflects a deletion, or an entry is orphaned, this throws a StateError and the whole Entries tab falls back to 'Can't load items right now'."
         },
         {
-          "path": "lib/src/features/authentication/data/account_deletion_service.dart",
-          "line": 56,
-          "detail": "Data is deleted before user.delete(), so a failure at the second step is not recoverable or retryable from the user's side."
-        },
-        {
-          "path": "lib/src/features/authentication/presentation/delete_account_and_data_button.dart",
-          "line": 22,
-          "detail": "The default re-auth dialog is built from authProviders, which holds only EmailAuthProvider. An anonymous user (offered on the sign-in screen) has no credential to re-enter, so this path cannot complete for them."
+          "path": "lib/src/features/jobs/data/jobs_repository.dart",
+          "line": 37,
+          "detail": "deleteJob removes the entries one at a time and then the job, so there is a window where the two streams disagree. A reviewer who swipes away a job and then opens the Entries tab can hit this."
         }
       ],
       "fix": {
         "kind": "manual",
-        "recipe": "When reauthenticate() returns false, show a message that the account was not deleted and that the data is already removed. For anonymous users, either skip re-auth and call user.delete() after a fresh signInAnonymously(), or tell them to sign out and in again. Alternatively reauthenticate first and delete data second. Add a widget test for the cancelled re-auth path."
+        "recipe": "In _entriesJobsCombiner skip entries whose job is missing (use where/firstWhereOrNull) instead of throwing. Delete a job and its entries in one Firestore batch. Add a unit test with an orphaned entry."
       }
     },
     {
-      "id": "LLM-IOS-SUPPORT-CONTACT",
+      "id": "LLM-IOS-RATE-INPUT-WHOLE-NUMBERS",
       "store": "ios",
       "layer": "reviewer",
-      "guideline": "Apple 1.5 Developer Information; 5.1.1(i) Privacy Policy contact",
-      "title": "The only user contact is a confidential GitLab issue, and the listing has no support URL",
+      "guideline": "iOS 2.1 App Completeness; iOS 2.3 Accurate Metadata",
+      "title": "Hourly rate accepts whole numbers only, and invalid input silently becomes 0 so pay disappears",
       "severity": "warning",
       "weight": 4,
       "source": "llm",
       "confidence": 0.6,
       "evidence": [
         {
-          "path": "deploy/cloudrun/legal/privacy.html",
-          "line": 18,
-          "detail": "Contact for questions and requests is a confidential issue on a GitLab project. Ordinary App Store users cannot be expected to have a GitLab account, and the link points at a hackathon project path."
+          "path": "lib/src/features/jobs/presentation/edit_job_screen/edit_job_screen.dart",
+          "line": 123,
+          "detail": "The rate field uses decimal: false and has no validator. Typing 12.50 or leaving the field empty is parsed with int.tryParse(...) ?? 0 (line 127) and saved as 0 with no message."
         },
         {
-          "path": "deploy/cloudrun/legal/delete-account.html",
-          "line": 19,
-          "detail": "The fallback for users who cannot sign in (so cannot use in-app deletion) is the same GitLab issue form. They have no practical way to request deletion."
+          "path": "lib/src/features/jobs/presentation/job_entries_screen/entry_list_item.dart",
+          "line": 58,
+          "detail": "Pay is only shown when ratePerHour > 0. A job saved with a silently dropped rate shows no pay anywhere, although the listing sells the app as tracking pay."
         },
         {
           "path": "store/listing.yaml",
-          "line": 1,
-          "detail": "The listing defines privacy_policy_url and account_deletion_url but no support_url or contact email. App Store Connect requires a Support URL and reviewers check that it works."
+          "line": 8,
+          "detail": "The listing subtitle is 'Track jobs, entries and pay'. A reviewer testing with a typical rate such as 12.50 sees pay vanish or the value change with no explanation."
         }
       ],
       "fix": {
-        "kind": "handoff",
-        "recipe": "Provide a monitored support email or a public support page. Add support_url to store/listing.yaml, and replace the GitLab link in privacy.html and delete-account.html with that contact. Redeploy the Cloud Run legal pages."
+        "kind": "manual",
+        "recipe": "Add a validator that rejects empty or non-numeric rates, or allow decimals. Store the rate as a double or as minor units and update Job.fromMap, which currently casts to int. Add a widget test for 12.50 and for an empty field."
+      }
+    },
+    {
+      "id": "LLM-IOS-LISTING-PAY-PER-JOB",
+      "store": "ios",
+      "layer": "reviewer",
+      "guideline": "iOS 2.3 Accurate Metadata",
+      "title": "Description promises hours and pay per job, but no per-job total exists",
+      "severity": "info",
+      "weight": 3,
+      "source": "llm",
+      "confidence": 0.45,
+      "evidence": [
+        {
+          "path": "store/listing.yaml",
+          "line": 9,
+          "detail": "The iOS description says the user can 'see how many hours and how much pay each job adds up to'."
+        },
+        {
+          "path": "lib/src/features/jobs/presentation/jobs_screen/jobs_screen.dart",
+          "line": 78,
+          "detail": "The Jobs list tile shows only the job name and a chevron. It has no hours or pay total."
+        },
+        {
+          "path": "lib/src/features/entries/application/entries_service.dart",
+          "line": 66,
+          "detail": "The Entries tab shows one overall total plus per-day, per-job rows. The user has to add the days up by hand to get a total for one job."
+        }
+      ],
+      "fix": {
+        "kind": "manual",
+        "recipe": "Either show a lifetime hours and pay total on the job entries screen and the job tile, or reword the iOS description to 'see hours and pay per day and per job' so it matches what the Entries tab shows."
+      }
+    },
+    {
+      "id": "LLM-IOS-DESTRUCTIVE-SWIPE-NO-CONFIRM",
+      "store": "ios",
+      "layer": "reviewer",
+      "guideline": "iOS 2.1 App Completeness; iOS 5.1.1(v) data control",
+      "title": "Swiping a job away deletes it and all its entries at once, with no confirmation or undo",
+      "severity": "info",
+      "weight": 3,
+      "source": "llm",
+      "confidence": 0.5,
+      "evidence": [
+        {
+          "path": "lib/src/features/jobs/presentation/jobs_screen/jobs_screen.dart",
+          "line": 51,
+          "detail": "onDismissed calls deleteJob immediately, and the only cue is a plain red background. Nothing says that the job's time entries go too."
+        },
+        {
+          "path": "lib/src/features/jobs/data/jobs_repository.dart",
+          "line": 40,
+          "detail": "deleteJob permanently deletes every entry of the job before deleting the job. A stray swipe wipes the user's work, and a network failure partway leaves a half-deleted job."
+        }
+      ],
+      "fix": {
+        "kind": "manual",
+        "recipe": "Use Dismissible.confirmDismiss with an alert that names the entries being deleted, or show a SnackBar with Undo. Commit the delete as a single Firestore batch."
+      }
+    },
+    {
+      "id": "LLM-IOS-ANON-ACCOUNT-DATA-LOSS-AND-DELETE",
+      "store": "ios",
+      "layer": "reviewer",
+      "guideline": "iOS 5.1.1(v) Account Deletion; iOS 2.1 App Completeness",
+      "title": "Anonymous users get no warning before sign-out, and their account deletion cannot re-authenticate",
+      "severity": "warning",
+      "weight": 4,
+      "source": "llm",
+      "confidence": 0.5,
+      "evidence": [
+        {
+          "path": "lib/src/features/authentication/presentation/custom_profile_screen.dart",
+          "line": 37,
+          "detail": "SignOutButton signs out immediately. An anonymous user's account and data can never be recovered afterwards, as the support page says. The profile screen only shows 'Signed in anonymously' (line 32) and gives no warning or upgrade path."
+        },
+        {
+          "path": "lib/src/features/authentication/presentation/delete_account_and_data_button.dart",
+          "line": 74,
+          "detail": "If Firebase asks for a recent login, the re-authentication dialog is built from authProviders, which holds only EmailAuthProvider (auth_providers.dart line 14). An anonymous user has no email or password to enter, so deletion cannot finish. The review notes (store/review_notes.yaml) point reviewers at this anonymous path to test deletion."
+        },
+        {
+          "path": "lib/src/features/authentication/presentation/custom_sign_in_screen.dart",
+          "line": 50,
+          "detail": "Anonymous sign-in is offered as an equal choice on the sign-in screen with no mention that the data is tied to this device session."
+        }
+      ],
+      "fix": {
+        "kind": "manual",
+        "recipe": "Before sign-out for an anonymous user, show a confirmation that the data will be lost. For anonymous users skip the email re-auth dialog: tell them to delete from a fresh session, or link the account to an email first. Offer 'Create account' to link the credential."
       }
     }
   ]

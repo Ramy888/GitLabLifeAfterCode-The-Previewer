@@ -1,76 +1,98 @@
 {
-  "version": "2.1.1",
+  "version": "2.1.2",
   "findings": [
     {
-      "id": "LLM-AND-DELETE-INCOMPLETE",
+      "id": "LLM-AND-ENTRY-NEGATIVE-DURATION",
       "store": "android",
       "layer": "reviewer",
-      "guideline": "Play User Data policy: Account deletion requirements",
-      "title": "In-app account deletion can wipe the data and then leave the account in place without telling the user",
+      "guideline": "Android: Minimum functionality (broken experience)",
+      "title": "A time entry can be saved with an end before its start, producing negative hours and negative pay",
       "severity": "warning",
-      "weight": 5,
+      "weight": 4,
       "source": "llm",
-      "confidence": 0.55,
+      "confidence": 0.7,
       "evidence": [
         {
-          "path": "lib/src/features/authentication/presentation/delete_account_and_data_button.dart",
-          "line": 70,
-          "detail": "On requires-recent-login the jobs and entries are already deleted. If reauthenticate() returns false (cancelled or failed), the code falls through: no message, no sign-out, and the account still exists with its data erased. The user is told nothing."
+          "path": "lib/src/features/entries/presentation/entry_screen/entry_screen.dart",
+          "line": 35,
+          "detail": "start and end are built independently from separate date and time pickers. Nothing checks end > start before submit (line 52), and the screen shows 'Duration' with a negative value at line 127."
         },
         {
-          "path": "lib/src/features/authentication/data/account_deletion_service.dart",
-          "line": 57,
-          "detail": "Data is deleted (line 57) before user.delete() (line 58). A failure at the second step leaves a half-deleted account, and store/data_safety.yaml advertises this flow as the deletion path."
-        },
-        {
-          "path": "lib/src/features/authentication/presentation/delete_account_and_data_button.dart",
-          "line": 30,
-          "detail": "The default re-auth dialog uses authProviders, which holds only EmailAuthProvider. A user who signed in anonymously (offered on the sign-in screen) has no credential to re-enter, so deletion cannot complete for them once Firebase asks for a recent login."
+          "path": "lib/src/features/entries/presentation/entry_screen/entry_screen_controller.dart",
+          "line": 18,
+          "detail": "submit() writes the entry to Firestore without any validation, so the negative duration is stored and feeds the per-day and 'All Entries' totals the listing advertises."
         }
       ],
       "fix": {
         "kind": "manual",
-        "recipe": "Re-authenticate before deleting any data (or delete the account first and clean up the data server-side). Show an error and keep the data when re-auth is cancelled. Handle anonymous users explicitly, since they need no re-auth or a different flow."
+        "recipe": "Disable Save and show an inline error when end is not after start. Also reject it in EntryScreenController.submit and add a unit test."
       }
     },
     {
-      "id": "LLM-AND-PRIVACY-CONTACT",
+      "id": "LLM-AND-RATE-SILENT-ZERO",
       "store": "android",
       "layer": "reviewer",
-      "guideline": "Play User Data policy: Privacy policy must include developer contact information; Account deletion web link",
-      "title": "Privacy policy and deletion page give only a GitLab issue tracker as contact, which ordinary users cannot use",
+      "guideline": "Android: Minimum functionality; Metadata policy (listing must match behaviour)",
+      "title": "Hourly rate accepts whole numbers only and invalid input silently becomes 0, so the pay the listing promises disappears",
+      "severity": "warning",
+      "weight": 4,
+      "source": "llm",
+      "confidence": 0.65,
+      "evidence": [
+        {
+          "path": "lib/src/features/jobs/presentation/edit_job_screen/edit_job_screen.dart",
+          "line": 127,
+          "detail": "The rate field has decimal: false (line 125), no validator, and saves int.tryParse(value) ?? 0. An entry like 12.50 or an empty field is stored as rate 0 with no message."
+        },
+        {
+          "path": "lib/src/features/jobs/presentation/job_entries_screen/entry_list_item.dart",
+          "line": 58,
+          "detail": "Pay is only displayed when ratePerHour > 0, so a silently dropped rate hides pay everywhere."
+        },
+        {
+          "path": "store/listing.yaml",
+          "line": 13,
+          "detail": "The Android description promises seeing 'how much pay each job adds up to'."
+        }
+      ],
+      "fix": {
+        "kind": "manual",
+        "recipe": "Add a validator that rejects empty or non-numeric rates, or allow decimals and store the rate as a double or integer cents. Show an error instead of defaulting to 0."
+      }
+    },
+    {
+      "id": "LLM-AND-ENTRIES-TAB-ORPHAN-CRASH",
+      "store": "android",
+      "layer": "reviewer",
+      "guideline": "Android: Minimum functionality (crashes and broken experience)",
+      "title": "Entries tab fails to load when an entry has no matching job, which deleting a job can briefly cause",
       "severity": "warning",
       "weight": 4,
       "source": "llm",
       "confidence": 0.5,
       "evidence": [
         {
-          "path": "deploy/cloudrun/legal/privacy.html",
-          "line": 18,
-          "detail": "The only contact route is a confidential issue on a gitlab.com project. Filing one needs a GitLab account, and the project is a hackathon showcase repository. There is no developer email address or other contact."
+          "path": "lib/src/features/entries/application/entries_service.dart",
+          "line": 35,
+          "detail": "jobs.firstWhere(...) has no orElse. An entry whose job is missing throws StateError and the whole combined stream errors, so the Entries tab shows an error instead of the totals."
         },
         {
-          "path": "deploy/cloudrun/legal/delete-account.html",
-          "line": 19,
-          "detail": "The 'Can't sign in?' fallback for users who cannot use the app is the same GitLab tracker. The Play-required web deletion link therefore has no usable request route for a user who lost access, and it asks them to post their email address in an issue."
-        },
-        {
-          "path": "store/listing.yaml",
-          "line": 3,
-          "detail": "privacy_policy_url and account_deletion_url both point at these pages."
+          "path": "lib/src/features/jobs/data/jobs_repository.dart",
+          "line": 44,
+          "detail": "deleteJob deletes entries one at a time, then the job (line 49), so the two streams can disagree. A failure part-way, such as going offline, leaves permanent orphan entries and the Entries tab stays broken for that account."
         }
       ],
       "fix": {
-        "kind": "handoff",
-        "recipe": "Add a monitored developer email address (or a contact form) to both legal pages and the Play Console developer contact. Offer a deletion request route that needs no third-party account."
+        "kind": "manual",
+        "recipe": "Skip entries whose job is missing in _entriesJobsCombiner. Delete the job and its entries in one Firestore batch. Add a test with an orphaned entry."
       }
     },
     {
-      "id": "LLM-AND-POLICY-NAME-MISMATCH",
+      "id": "LLM-AND-DATASAFETY-NAME-POLICY",
       "store": "android",
       "layer": "reviewer",
-      "guideline": "Play User Data policy: Data safety form must match the privacy policy and actual behaviour",
-      "title": "Data safety declares an optional display name, but the privacy policy never mentions it",
+      "guideline": "Android: User Data policy (Data safety form must match the privacy policy and actual behaviour)",
+      "title": "Data safety declares an optional display name that the privacy policy does not mention, and the profile also reads a photo URL",
       "severity": "warning",
       "weight": 3,
       "source": "llm",
@@ -83,26 +105,53 @@
         },
         {
           "path": "lib/src/features/authentication/presentation/custom_profile_screen.dart",
-          "line": 28,
-          "detail": "EditableUserDisplayName lets the user set a display name, which Firebase Auth stores on the profile. UserAvatar on line 26 also reads the profile photo URL."
+          "line": 26,
+          "detail": "UserAvatar reads the profile photo URL and EditableUserDisplayName (line 28) lets the user store a display name in the auth profile."
         },
         {
           "path": "deploy/cloudrun/legal/privacy.html",
           "line": 8,
-          "detail": "'What we store' lists the email, password hash, anonymous ID, job names, rates, entry times and comments. It omits the display name and any profile photo URL."
+          "detail": "'What we store' lists email, password hash, anonymous ID, jobs and entries, but not the display name or a photo URL."
         }
       ],
       "fix": {
         "kind": "manual",
-        "recipe": "Add the optional display name (and profile photo URL, if it can be set) to the 'What we store' list in privacy.html, so the policy and the Data safety form say the same thing."
+        "recipe": "Add the optional display name (and photo URL, if it can be set) to the privacy policy so it matches the Data safety form."
       }
     },
     {
-      "id": "LLM-AND-APP-ACCESS-SEED",
+      "id": "LLM-AND-DELETE-DATA-BEFORE-ACCOUNT",
       "store": "android",
       "layer": "reviewer",
-      "guideline": "Play App access; Minimum functionality",
-      "title": "Review notes promise a demo account that already has two jobs with entries, but nothing in the repo creates that data",
+      "guideline": "Android: User Data policy (account deletion requirements)",
+      "title": "Deletion erases the data before the account, and anonymous users may be unable to complete re-authentication",
+      "severity": "warning",
+      "weight": 4,
+      "source": "llm",
+      "confidence": 0.45,
+      "evidence": [
+        {
+          "path": "lib/src/features/authentication/data/account_deletion_service.dart",
+          "line": 57,
+          "detail": "deleteAllUserData runs before user.delete() (line 58). Any failure other than requires-recent-login, such as a network drop, leaves the account alive with its data gone, and the user sees only a generic error."
+        },
+        {
+          "path": "lib/src/features/authentication/presentation/delete_account_and_data_button.dart",
+          "line": 36,
+          "detail": "The default re-auth dialog uses authProviders, which contains only EmailAuthProvider. An anonymous user, whom review_notes.yaml sends to test deletion, has no credential to re-enter if Firebase asks for a recent sign-in. The cancel path (line 79) tells the user to 'sign in again', which an anonymous user cannot do."
+        }
+      ],
+      "fix": {
+        "kind": "manual",
+        "recipe": "Re-authenticate (or confirm a recent sign-in) before deleting data. Handle anonymous users explicitly, for example by deleting them directly. Retry the account delete with a clear message on failure."
+      }
+    },
+    {
+      "id": "LLM-AND-APP-ACCESS-SEED-UNVERIFIABLE",
+      "store": "android",
+      "layer": "reviewer",
+      "guideline": "Android: App access (reviewer must reach all functionality)",
+      "title": "Review notes promise a seeded demo account, but nothing in the repo creates or refreshes that data",
       "severity": "warning",
       "weight": 4,
       "source": "llm",
@@ -111,30 +160,25 @@
         {
           "path": "store/review_notes.yaml",
           "line": 4,
-          "detail": "States the demo account 'already has two jobs with time entries'. A search of the repo finds no seed script, fixture or CI step that creates the account or its Firestore data."
+          "detail": "Claims the demo account already has two jobs with time entries. Line 7 says it is re-seeded before each submission. No script, fixture or CI job in the repo (only scripts/demo-video and tools/ci) creates the account or its Firestore data."
         },
         {
-          "path": "lib/src/features/jobs/presentation/edit_job_screen/edit_job_screen.dart",
-          "line": 52,
-          "detail": "Jobs, job entries and the Entries totals only have content once the account has data. With an empty account the reviewer sees empty lists, and the per-day totals, pay and entry editing are not reachable until they add data themselves."
-        },
-        {
-          "path": "store/review_notes.yaml",
-          "line": 2,
-          "detail": "The notes also name Delete account as the deletion path. If a reviewer runs it on the shared demo account, the account and its data are gone for the next review."
+          "path": "lib/src/features/jobs/presentation/jobs_screen/jobs_screen.dart",
+          "line": 38,
+          "detail": "With an empty account the reviewer sees 'No jobs yet'. Job entries, edit and the Entries day totals only show content after data exists, so an unseeded account fails the Minimum functionality check."
         }
       ],
       "fix": {
         "kind": "handoff",
-        "recipe": "Create the reviewer account and seed two jobs with entries in the production Firebase project. Re-seed it before each submission, and tell the reviewer in the notes that they can use the anonymous sign-in to test deletion instead."
+        "recipe": "Create the reviewer account and seed two jobs with entries in the production Firebase project before submitting. Ideally commit an idempotent seed script that CI runs, so the re-seeding claim is true."
       }
     },
     {
-      "id": "LLM-AND-ERROR-WIDGET-LEAK",
+      "id": "LLM-AND-ERROR-WIDGET-RAW-DUMP",
       "store": "android",
       "layer": "reviewer",
-      "guideline": "Play Minimum functionality / broken experience (app stability and quality)",
-      "title": "Release builds show a raw exception dump on a red screen whenever a widget fails to build",
+      "guideline": "Android: Minimum functionality (broken experience)",
+      "title": "Release builds show a raw exception dump on a red screen when a widget fails to build",
       "severity": "info",
       "weight": 2,
       "source": "llm",
@@ -142,13 +186,13 @@
       "evidence": [
         {
           "path": "lib/main.dart",
-          "line": 38,
-          "detail": "ErrorWidget.builder is set unconditionally, with no kDebugMode guard. It renders details.toString() (line 44) under a red 'An error occurred' app bar, so users and reviewers see stack text. Errors are only debugPrint-ed, so there is no crash reporting either."
+          "line": 44,
+          "detail": "ErrorWidget.builder (line 38) is set with no kDebugMode guard and renders details.toString() to users. Errors are only debugPrint-ed (lines 30 and 34), so nothing is reported either."
         }
       ],
       "fix": {
         "kind": "manual",
-        "recipe": "Show a friendly message with a retry action in release builds and keep the detailed output for kDebugMode only."
+        "recipe": "Show a short friendly message with a retry action in release builds and keep the detail for kDebugMode."
       }
     }
   ]

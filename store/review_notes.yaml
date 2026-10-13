@@ -3,6 +3,8 @@ account_deletion_path: Account tab > Delete account (deletes jobs and entries, t
 notes:
   - Sign in with the demo account (email and password). It already has two jobs with time entries.
   - Jobs lists them; tap a job to see its entries, or + to add a job. Entries shows the totals per day.
+  - To test account deletion without touching the demo account, use "Sign in anonymously" on the sign-in screen, then Account tab > Delete account.
+  - The demo account is re-seeded before each submission.
   - The privacy policy is linked from the sign-in screen and the Account tab.
 answers:
   uses_non_exempt_encryption: 'no'
