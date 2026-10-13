@@ -1,3 +1,4 @@
+import 'package:starter_architecture_flutter_firebase/src/localization/string_hardcoded.dart';
 import 'package:firebase_ui_firestore/firebase_ui_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -23,6 +24,16 @@ class JobEntriesList extends ConsumerWidget {
     final jobEntriesQuery = ref.watch(jobEntriesQueryProvider(job.id));
     return FirestoreListView<Entry>(
       query: jobEntriesQuery,
+      padding: const EdgeInsets.fromLTRB(16, 8, 16, 96),
+      emptyBuilder: (context) => Center(
+        child: Padding(
+          padding: const EdgeInsets.all(32),
+          child: Text(
+            'No time logged for this job yet. Tap New entry to add the first one.'.hardcoded,
+            textAlign: TextAlign.center,
+          ),
+        ),
+      ),
       itemBuilder: (context, doc) {
         final entry = doc.data();
         return DismissibleEntryListItem(

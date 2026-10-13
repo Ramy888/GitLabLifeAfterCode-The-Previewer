@@ -1,17 +1,13 @@
-import 'package:starter_architecture_flutter_firebase/src/theme/app_theme.dart';
 import 'package:flutter/material.dart';
-import 'package:starter_architecture_flutter_firebase/src/constants/app_sizes.dart';
-import 'package:starter_architecture_flutter_firebase/src/utils/format.dart';
 import 'package:starter_architecture_flutter_firebase/src/features/entries/domain/entry.dart';
+import 'package:starter_architecture_flutter_firebase/src/features/entries/domain/entry_times.dart';
 import 'package:starter_architecture_flutter_firebase/src/features/jobs/domain/job.dart';
+import 'package:starter_architecture_flutter_firebase/src/theme/app_theme.dart';
+import 'package:starter_architecture_flutter_firebase/src/utils/format.dart';
 
+/// One time entry of a job: day, start to end, duration, pay and comment.
 class EntryListItem extends StatelessWidget {
-  const EntryListItem({
-    super.key,
-    required this.entry,
-    required this.job,
-    this.onTap,
-  });
+  const EntryListItem({super.key, required this.entry, required this.job, this.onTap});
 
   final Entry entry;
   final Job job;
@@ -19,64 +15,63 @@ class EntryListItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return InkWell(
-      onTap: onTap,
-      child: Container(
-        padding: const EdgeInsets.symmetric(
-          horizontal: Sizes.p16,
-          vertical: Sizes.p8,
-        ),
-        child: Row(
-          children: <Widget>[
-            Expanded(
-              child: _buildContents(context),
-            ),
-            Icon(Icons.chevron_right, color: AppColors.of(context).muted),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildContents(BuildContext context) {
-    final dayOfWeek = Format.dayOfWeek(entry.start);
-    final startDate = Format.date(entry.start);
+    final theme = Theme.of(context);
+    final colors = AppColors.of(context);
     final startTime = TimeOfDay.fromDateTime(entry.start).format(context);
     final endTime = TimeOfDay.fromDateTime(entry.end).format(context);
-    final durationFormatted = Format.hours(entry.durationInHours);
-
+    final minutes = entry.end.difference(entry.start).inMinutes;
     final pay = job.ratePerHour * entry.durationInHours;
-    final payFormatted = Format.currency(pay);
-
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: <Widget>[
-        Row(children: <Widget>[
-          Text(dayOfWeek,
-              style: TextStyle(fontSize: 18.0, color: AppColors.of(context).muted)),
-          gapW16,
-          Text(startDate, style: const TextStyle(fontSize: 18.0)),
-          if (job.ratePerHour > 0.0) ...<Widget>[
-            Expanded(child: Container()),
-            Text(
-              payFormatted,
-              style: TextStyle(fontSize: 16.0, color: AppColors.of(context).pay),
-            ),
-          ],
-        ]),
-        Row(children: <Widget>[
-          Text('$startTime - $endTime', style: const TextStyle(fontSize: 16.0)),
-          Expanded(child: Container()),
-          Text(durationFormatted, style: const TextStyle(fontSize: 16.0)),
-        ]),
-        if (entry.comment.isNotEmpty)
-          Text(
-            entry.comment,
-            style: const TextStyle(fontSize: 12.0),
-            overflow: TextOverflow.ellipsis,
-            maxLines: 1,
+    return Card(
+      clipBehavior: Clip.antiAlias,
+      child: InkWell(
+        onTap: onTap,
+        child: Padding(
+          padding: const EdgeInsets.all(16),
+          child: Row(
+            children: [
+              Container(
+                width: 52,
+                padding: const EdgeInsets.symmetric(vertical: 6),
+                decoration: BoxDecoration(
+                  color: colors.headerFill,
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Column(
+                  children: [
+                    Text(Format.dayOfWeek(entry.start), style: theme.textTheme.labelMedium),
+                    Text('${entry.start.day}',
+                        style: theme.textTheme.titleLarge!.copyWith(fontWeight: FontWeight.w700)),
+                  ],
+                ),
+              ),
+              const SizedBox(width: 16),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text('$startTime – $endTime', style: theme.textTheme.titleMedium),
+                    Text(
+                      entry.comment.isNotEmpty ? entry.comment : Format.date(entry.start),
+                      style: theme.textTheme.bodyMedium!.copyWith(color: colors.muted),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(width: 8),
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.end,
+                children: [
+                  Text(EntryTimes.durationLabel(minutes < 0 ? 0 : minutes), style: theme.textTheme.titleMedium),
+                  if (pay > 0)
+                    Text(Format.currency(pay), style: theme.textTheme.bodyMedium!.copyWith(color: colors.pay)),
+                ],
+              ),
+            ],
           ),
-      ],
+        ),
+      ),
     );
   }
 }
@@ -99,15 +94,20 @@ class DismissibleEntryListItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Dismissible(
-      background: Container(color: Theme.of(context).colorScheme.error),
-      key: dismissibleKey,
-      direction: DismissDirection.endToStart,
-      onDismissed: (direction) => onDismissed?.call(),
-      child: EntryListItem(
-        entry: entry,
-        job: job,
-        onTap: onTap,
+    final scheme = Theme.of(context).colorScheme;
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 12),
+      child: Dismissible(
+        background: Container(
+          alignment: Alignment.centerRight,
+          padding: const EdgeInsets.symmetric(horizontal: 24),
+          decoration: BoxDecoration(color: scheme.errorContainer, borderRadius: BorderRadius.circular(16)),
+          child: Icon(Icons.delete_outline, color: scheme.onErrorContainer),
+        ),
+        key: dismissibleKey,
+        direction: DismissDirection.endToStart,
+        onDismissed: (direction) => onDismissed?.call(),
+        child: EntryListItem(entry: entry, job: job, onTap: onTap),
       ),
     );
   }
