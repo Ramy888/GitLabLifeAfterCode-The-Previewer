@@ -2,7 +2,7 @@ name: starter_architecture_flutter_firebase
 description: A new Flutter project.
 
 publish_to: 'none'
-version: 2.1.2
+version: 2.2.0
 
 environment:
   sdk: ">=3.6.0 <4.0.0"
