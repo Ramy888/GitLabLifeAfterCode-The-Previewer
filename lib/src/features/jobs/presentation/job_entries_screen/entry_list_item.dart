@@ -1,3 +1,4 @@
+import 'package:starter_architecture_flutter_firebase/src/theme/app_theme.dart';
 import 'package:flutter/material.dart';
 import 'package:starter_architecture_flutter_firebase/src/constants/app_sizes.dart';
 import 'package:starter_architecture_flutter_firebase/src/utils/format.dart';
@@ -30,7 +31,7 @@ class EntryListItem extends StatelessWidget {
             Expanded(
               child: _buildContents(context),
             ),
-            const Icon(Icons.chevron_right, color: Colors.grey),
+            Icon(Icons.chevron_right, color: AppColors.of(context).muted),
           ],
         ),
       ),
@@ -52,14 +53,14 @@ class EntryListItem extends StatelessWidget {
       children: <Widget>[
         Row(children: <Widget>[
           Text(dayOfWeek,
-              style: const TextStyle(fontSize: 18.0, color: Colors.grey)),
+              style: TextStyle(fontSize: 18.0, color: AppColors.of(context).muted)),
           gapW16,
           Text(startDate, style: const TextStyle(fontSize: 18.0)),
           if (job.ratePerHour > 0.0) ...<Widget>[
             Expanded(child: Container()),
             Text(
               payFormatted,
-              style: TextStyle(fontSize: 16.0, color: Colors.green[700]),
+              style: TextStyle(fontSize: 16.0, color: AppColors.of(context).pay),
             ),
           ],
         ]),
@@ -99,7 +100,7 @@ class DismissibleEntryListItem extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Dismissible(
-      background: Container(color: Colors.red),
+      background: Container(color: Theme.of(context).colorScheme.error),
       key: dismissibleKey,
       direction: DismissDirection.endToStart,
       onDismissed: (direction) => onDismissed?.call(),

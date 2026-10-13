@@ -72,7 +72,7 @@ class _EditJobPageState extends ConsumerState<EditJobScreen> {
             onPressed: state.isLoading ? null : _submit,
             child: const Text(
               'Save',
-              style: TextStyle(fontSize: 18, color: Colors.white),
+              style: TextStyle(fontSize: 18),
             ),
           ),
         ],

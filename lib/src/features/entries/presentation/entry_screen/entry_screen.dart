@@ -76,7 +76,7 @@ class _EntryPageState extends ConsumerState<EntryScreen> {
           TextButton(
             child: Text(
               widget.entry != null ? 'Update' : 'Create',
-              style: const TextStyle(fontSize: 18.0, color: Colors.white),
+              style: const TextStyle(fontSize: 18.0),
             ),
             onPressed: () => _setEntryAndDismiss(),
           ),
@@ -149,7 +149,7 @@ class _EntryPageState extends ConsumerState<EntryScreen> {
         labelStyle: TextStyle(fontSize: 18.0, fontWeight: FontWeight.w500),
       ),
       keyboardAppearance: Brightness.light,
-      style: const TextStyle(fontSize: 20.0, color: Colors.black),
+      style: const TextStyle(fontSize: 20.0),
       maxLines: null,
       onChanged: (comment) => _comment = comment,
     );

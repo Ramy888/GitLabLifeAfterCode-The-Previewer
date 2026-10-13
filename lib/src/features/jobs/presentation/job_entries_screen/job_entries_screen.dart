@@ -32,7 +32,7 @@ class JobEntriesPageContents extends StatelessWidget {
         title: Text(job.name),
         actions: <Widget>[
           IconButton(
-            icon: const Icon(Icons.edit, color: Colors.white),
+            icon: const Icon(Icons.edit),
             onPressed: () => context.goNamed(
               AppRoute.editJob.name,
               pathParameters: {'id': job.id},
@@ -43,7 +43,7 @@ class JobEntriesPageContents extends StatelessWidget {
       ),
       body: JobEntriesList(job: job),
       floatingActionButton: FloatingActionButton(
-        child: const Icon(Icons.add, color: Colors.white),
+        child: const Icon(Icons.add),
         onPressed: () => context.goNamed(
           AppRoute.addEntry.name,
           pathParameters: {'id': job.id},

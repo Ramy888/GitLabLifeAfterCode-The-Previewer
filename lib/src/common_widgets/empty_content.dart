@@ -17,11 +17,13 @@ class EmptyContent extends StatelessWidget {
         children: <Widget>[
           Text(
             title,
-            style: const TextStyle(fontSize: 32.0, color: Colors.black54),
+            style: Theme.of(context).textTheme.headlineSmall,
+            textAlign: TextAlign.center,
           ),
           Text(
             message,
-            style: const TextStyle(fontSize: 16.0, color: Colors.black54),
+            style: Theme.of(context).textTheme.bodyLarge!.copyWith(color: Theme.of(context).colorScheme.onSurfaceVariant),
+            textAlign: TextAlign.center,
           ),
         ],
       ),

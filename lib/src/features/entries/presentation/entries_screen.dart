@@ -1,3 +1,4 @@
+import 'package:starter_architecture_flutter_firebase/src/theme/app_theme.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:starter_architecture_flutter_firebase/src/constants/app_sizes.dart';
@@ -40,7 +41,7 @@ class EntriesListTile extends StatelessWidget {
   Widget build(BuildContext context) {
     const fontSize = 16.0;
     return Container(
-      color: model.isHeader ? Colors.indigo[100] : null,
+      color: model.isHeader ? AppColors.of(context).headerFill : null,
       padding: const EdgeInsets.symmetric(
         vertical: Sizes.p8,
         horizontal: Sizes.p16,
@@ -52,7 +53,7 @@ class EntriesListTile extends StatelessWidget {
           if (model.middleText != null)
             Text(
               model.middleText!,
-              style: TextStyle(color: Colors.green[700], fontSize: fontSize),
+              style: TextStyle(color: AppColors.of(context).pay, fontSize: fontSize),
               textAlign: TextAlign.right,
             ),
           SizedBox(
