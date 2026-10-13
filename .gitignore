@@ -117,3 +117,4 @@ android/upload-keystore.jks
 # demo recording output
 scripts/demo-video/out/
 scripts/demo-video/fail.png
+scripts/responsive/out/

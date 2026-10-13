@@ -66,13 +66,13 @@ class _EditJobPageState extends ConsumerState<EditJobScreen> {
     final state = ref.watch(editJobScreenControllerProvider);
     return Scaffold(
       appBar: AppBar(
-        title: Text(widget.job == null ? 'New Job' : 'Edit Job'),
+        title: Text(widget.job == null ? 'New job' : 'Edit job'),
         actions: <Widget>[
-          TextButton(
-            onPressed: state.isLoading ? null : _submit,
-            child: const Text(
-              'Save',
-              style: TextStyle(fontSize: 18),
+          Padding(
+            padding: const EdgeInsets.only(right: 8),
+            child: FilledButton(
+              onPressed: state.isLoading ? null : _submit,
+              child: const Text('Save'),
             ),
           ),
         ],
