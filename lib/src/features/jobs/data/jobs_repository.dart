@@ -23,7 +23,7 @@ class JobsRepository {
   Future<void> addJob(
           {required UserID uid,
           required String name,
-          required int ratePerHour}) =>
+          required double ratePerHour}) =>
       _firestore.collection(jobsPath(uid)).add({
         'name': name,
         'ratePerHour': ratePerHour,

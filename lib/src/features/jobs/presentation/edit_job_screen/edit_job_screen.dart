@@ -22,7 +22,7 @@ class _EditJobPageState extends ConsumerState<EditJobScreen> {
   final _formKey = GlobalKey<FormState>();
 
   String? _name;
-  int? _ratePerHour;
+  double? _ratePerHour;
 
   @override
   void initState() {
@@ -109,23 +109,39 @@ class _EditJobPageState extends ConsumerState<EditJobScreen> {
   List<Widget> _buildFormChildren() {
     return [
       TextFormField(
-        decoration: const InputDecoration(labelText: 'Job name'),
-        keyboardAppearance: Brightness.light,
+        decoration: const InputDecoration(
+          labelText: 'Job name',
+          hintText: 'e.g. Website redesign',
+          prefixIcon: Icon(Icons.work_outline_rounded),
+        ),
+        textCapitalization: TextCapitalization.sentences,
+        textInputAction: TextInputAction.next,
         initialValue: _name,
         validator: (value) =>
             (value ?? '').isNotEmpty ? null : 'Name can\'t be empty',
         onSaved: (value) => _name = value,
       ),
+      const SizedBox(height: 16),
       TextFormField(
-        decoration: const InputDecoration(labelText: 'Rate per hour'),
-        keyboardAppearance: Brightness.light,
-        initialValue: _ratePerHour != null ? '$_ratePerHour' : null,
+        decoration: const InputDecoration(
+          labelText: 'Rate per hour',
+          hintText: '0 if unpaid',
+          helperText: 'Used to work out pay. Decimals are fine, e.g. 12.50',
+          prefixIcon: Icon(Icons.payments_outlined),
+        ),
+        initialValue: _ratePerHour != null ? _formatRate(_ratePerHour!) : null,
         keyboardType: const TextInputType.numberWithOptions(
           signed: false,
-          decimal: false,
+          decimal: true,
         ),
-        onSaved: (value) => _ratePerHour = int.tryParse(value ?? '') ?? 0,
+        validator: (value) => Job.parseRate(value ?? '') == null
+            ? 'Enter a number from 0 to ${Job.maxRate.toStringAsFixed(0)}'
+            : null,
+        onSaved: (value) => _ratePerHour = Job.parseRate(value ?? '') ?? 0,
       ),
     ];
   }
+
+  static String _formatRate(double rate) =>
+      rate == rate.roundToDouble() ? rate.toStringAsFixed(0) : rate.toStringAsFixed(2);
 }
