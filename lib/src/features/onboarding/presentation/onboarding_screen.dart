@@ -1,6 +1,6 @@
+import 'package:starter_architecture_flutter_firebase/src/features/authentication/presentation/sign_in_header.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:flutter_svg/flutter_svg.dart';
 import 'package:go_router/go_router.dart';
 import 'package:starter_architecture_flutter_firebase/src/common_widgets/primary_button.dart';
 import 'package:starter_architecture_flutter_firebase/src/common_widgets/responsive_center.dart';
@@ -23,19 +23,8 @@ class OnboardingScreen extends ConsumerWidget {
           mainAxisAlignment: MainAxisAlignment.center,
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            Text(
-              'Track your time.\nBecause time counts.',
-              style: Theme.of(context).textTheme.headlineSmall,
-              textAlign: TextAlign.center,
-            ),
-            gapH16,
-            SvgPicture.asset(
-              'assets/time-tracking.svg',
-              width: 200,
-              height: 200,
-              semanticsLabel: 'Time tracking logo',
-            ),
-            gapH16,
+            const Center(child: SignInHeader(logoSize: 120)),
+            gapH32,
             PrimaryButton(
               text: 'Get Started'.hardcoded,
               isLoading: state.isLoading,

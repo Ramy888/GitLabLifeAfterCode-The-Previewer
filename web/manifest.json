@@ -1,11 +1,11 @@
 {
-    "name": "starter_architecture_flutter_firebase",
-    "short_name": "starter_architecture_flutter_firebase",
+    "name": "Time Tracker",
+    "short_name": "Time Tracker",
     "start_url": ".",
     "display": "standalone",
-    "background_color": "#0175C2",
-    "theme_color": "#0175C2",
-    "description": "A new Flutter project.",
+    "background_color": "#F4FBF9",
+    "theme_color": "#0F766E",
+    "description": "Track the hours you work on each job and see your pay, day by day.",
     "orientation": "portrait-primary",
     "prefer_related_applications": false,
     "icons": [

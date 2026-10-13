@@ -7,6 +7,7 @@ import 'package:starter_architecture_flutter_firebase/src/features/authenticatio
 import 'package:starter_architecture_flutter_firebase/src/utils/alert_dialogs.dart';
 
 import 'auth_providers.dart';
+import 'sign_in_header.dart';
 
 class CustomSignInScreen extends ConsumerWidget {
   const CustomSignInScreen({super.key});
@@ -14,14 +15,20 @@ class CustomSignInScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final authProviders = ref.watch(authProvidersProvider);
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Sign in'),
+    return SignInScreen(
+      providers: authProviders,
+      headerMaxExtent: 220,
+      headerBuilder: (context, constraints, shrinkOffset) => const Padding(
+        padding: EdgeInsets.only(top: 24),
+        child: Center(child: SignInHeader(logoSize: 64)),
       ),
-      body: SignInScreen(
-        providers: authProviders,
-        footerBuilder: (context, action) => const SignInAnonymouslyFooter(),
+      sideBuilder: (context, constraints) => const Center(
+        child: Padding(
+          padding: EdgeInsets.all(48),
+          child: SignInHeader(logoSize: 96, showPoints: true),
+        ),
       ),
+      footerBuilder: (context, action) => const SignInAnonymouslyFooter(),
     );
   }
 }
