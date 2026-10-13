@@ -1,4 +1,6 @@
 // ignore_for_file: public_member_api_docs, sort_constructors_first
+import 'package:starter_architecture_flutter_firebase/src/common_widgets/app_logo.dart';
+import 'package:starter_architecture_flutter_firebase/src/constants/breakpoints.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
@@ -27,7 +29,7 @@ class ScaffoldWithNestedNavigation extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final size = MediaQuery.sizeOf(context);
-    if (size.width < 450) {
+    if (size.width < Breakpoint.tablet) {
       return ScaffoldWithNavigationBar(
         body: navigationShell,
         currentIndex: navigationShell.currentIndex,
@@ -63,13 +65,13 @@ class ScaffoldWithNavigationBar extends StatelessWidget {
         destinations: [
           // products
           NavigationDestination(
-            icon: const Icon(Icons.work_outline),
+            icon: const Icon(Icons.work_outline_rounded),
             selectedIcon: const Icon(Icons.work),
             label: 'Jobs'.hardcoded,
           ),
           NavigationDestination(
-            icon: const Icon(Icons.view_headline_outlined),
-            selectedIcon: const Icon(Icons.view_headline),
+            icon: const Icon(Icons.receipt_long_outlined),
+            selectedIcon: const Icon(Icons.receipt_long),
             label: 'Entries'.hardcoded,
           ),
           NavigationDestination(
@@ -104,15 +106,20 @@ class ScaffoldWithNavigationRail extends StatelessWidget {
             selectedIndex: currentIndex,
             onDestinationSelected: onDestinationSelected,
             labelType: NavigationRailLabelType.all,
+            groupAlignment: -0.9,
+            leading: const Padding(
+              padding: EdgeInsets.only(top: 8, bottom: 16),
+              child: AppLogo(size: 44),
+            ),
             destinations: <NavigationRailDestination>[
               NavigationRailDestination(
-                icon: const Icon(Icons.work_outline),
+                icon: const Icon(Icons.work_outline_rounded),
                 selectedIcon: const Icon(Icons.work),
                 label: Text('Jobs'.hardcoded),
               ),
               NavigationRailDestination(
-                icon: const Icon(Icons.view_headline_outlined),
-                selectedIcon: const Icon(Icons.view_headline),
+                icon: const Icon(Icons.receipt_long_outlined),
+                selectedIcon: const Icon(Icons.receipt_long),
                 label: Text('Entries'.hardcoded),
               ),
               NavigationRailDestination(
@@ -122,7 +129,7 @@ class ScaffoldWithNavigationRail extends StatelessWidget {
               ),
             ],
           ),
-          const VerticalDivider(thickness: 1, width: 1),
+          const VerticalDivider(width: 1),
           // This is the main content.
           Expanded(
             child: body,

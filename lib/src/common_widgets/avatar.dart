@@ -19,7 +19,7 @@ class Avatar extends StatelessWidget {
       decoration: _borderDecoration(),
       child: CircleAvatar(
         radius: radius,
-        backgroundColor: Colors.black12,
+        backgroundColor: Theme.of(context).colorScheme.surfaceContainerHighest,
         backgroundImage: photoUrl != null ? NetworkImage(photoUrl!) : null,
         child: photoUrl == null ? Icon(Icons.camera_alt, size: radius) : null,
       ),

@@ -1,3 +1,8 @@
+import 'package:starter_architecture_flutter_firebase/src/common_widgets/delete_swipe_background.dart';
+import 'package:starter_architecture_flutter_firebase/src/constants/breakpoints.dart';
+import 'package:starter_architecture_flutter_firebase/src/localization/string_hardcoded.dart';
+import 'package:starter_architecture_flutter_firebase/src/features/jobs/presentation/jobs_screen/job_card.dart';
+import 'package:starter_architecture_flutter_firebase/src/common_widgets/responsive_center.dart';
 import 'package:firebase_ui_firestore/firebase_ui_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -14,16 +19,13 @@ class JobsScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    void addJob() => context.goNamed(AppRoute.addJob.name);
     return Scaffold(
-      appBar: AppBar(
-        title: const Text(Strings.jobs),
-        actions: <Widget>[
-          IconButton(
-            icon: const Icon(Icons.add, color: Colors.white),
-            tooltip: 'Add job',
-            onPressed: () => context.goNamed(AppRoute.addJob.name),
-          ),
-        ],
+      appBar: AppBar(title: const Text(Strings.jobs)),
+      floatingActionButton: FloatingActionButton.extended(
+        onPressed: addJob,
+        icon: const Icon(Icons.add),
+        label: Text('New job'.hardcoded),
       ),
       body: Consumer(
         builder: (context, ref, child) {
@@ -32,52 +34,43 @@ class JobsScreen extends StatelessWidget {
             (_, state) => state.showAlertDialogOnError(context),
           );
           final jobsQuery = ref.watch(jobsQueryProvider);
-          return FirestoreListView<Job>(
-            query: jobsQuery,
-            emptyBuilder: (context) => const Center(
-              child: Text('No jobs yet. Tap + to add your first job.'),
-            ),
-            errorBuilder: (context, error, stackTrace) => Center(
-              child: Text(error.toString()),
-            ),
-            loadingBuilder: (context) =>
-                const Center(child: CircularProgressIndicator()),
-            itemBuilder: (context, doc) {
-              final job = doc.data();
-              return Dismissible(
-                key: Key('job-${job.id}'),
-                background: Container(color: Colors.red),
-                direction: DismissDirection.endToStart,
-                onDismissed: (direction) => ref
-                    .read(jobsScreenControllerProvider.notifier)
-                    .deleteJob(job),
-                child: JobListTile(
-                  job: job,
-                  onTap: () => context.goNamed(
-                    AppRoute.job.name,
-                    pathParameters: {'id': job.id},
+          return ResponsiveCenter(
+            maxContentWidth: Breakpoint.content,
+            child: FirestoreListView<Job>(
+              query: jobsQuery,
+              padding: const EdgeInsets.fromLTRB(16, 8, 16, 96),
+              emptyBuilder: (context) => JobsEmptyState(onAdd: addJob),
+              errorBuilder: (context, error, stackTrace) => Center(
+                child: Text(error.toString()),
+              ),
+              loadingBuilder: (context) =>
+                  const Center(child: CircularProgressIndicator()),
+              itemBuilder: (context, doc) {
+                final job = doc.data();
+                return Padding(
+                  padding: const EdgeInsets.only(bottom: 12),
+                  child: Dismissible(
+                    key: Key('job-${job.id}'),
+                    background: const DeleteSwipeBackground(),
+                    direction: DismissDirection.endToStart,
+                    confirmDismiss: (_) => confirmJobDelete(context, job),
+                    onDismissed: (direction) => ref
+                        .read(jobsScreenControllerProvider.notifier)
+                        .deleteJob(job),
+                    child: JobCard(
+                      job: job,
+                      onTap: () => context.goNamed(
+                        AppRoute.job.name,
+                        pathParameters: {'id': job.id},
+                      ),
+                    ),
                   ),
-                ),
-              );
-            },
+                );
+              },
+            ),
           );
         },
       ),
-    );
-  }
-}
-
-class JobListTile extends StatelessWidget {
-  const JobListTile({super.key, required this.job, this.onTap});
-  final Job job;
-  final VoidCallback? onTap;
-
-  @override
-  Widget build(BuildContext context) {
-    return ListTile(
-      title: Text(job.name),
-      trailing: const Icon(Icons.chevron_right),
-      onTap: onTap,
     );
   }
 }

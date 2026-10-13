@@ -6,8 +6,8 @@ support_email: support@thepreviwer.dev
 ios:
   name: Time Tracker
   subtitle: Track jobs, entries and pay
-  description: Create jobs, log time entries against them, and see how many hours and how much pay each job adds up to.
+  description: Create jobs, log time against them with a start and a duration, and see your hours and pay per day for each job.
 android:
   name: Time Tracker
   short_description: Track jobs, entries and pay
-  description: Create jobs, log time entries against them, and see how many hours and how much pay each job adds up to.
+  description: Create jobs, log time against them with a start and a duration, and see your hours and pay per day for each job.

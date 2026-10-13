@@ -1,10 +1,10 @@
+import 'package:starter_architecture_flutter_firebase/src/constants/breakpoints.dart';
 import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:starter_architecture_flutter_firebase/src/common_widgets/responsive_center.dart';
-import 'package:starter_architecture_flutter_firebase/src/constants/breakpoints.dart';
 import 'package:starter_architecture_flutter_firebase/src/features/jobs/domain/job.dart';
 import 'package:starter_architecture_flutter_firebase/src/features/jobs/presentation/edit_job_screen/edit_job_screen_controller.dart';
 import 'package:starter_architecture_flutter_firebase/src/utils/async_value_ui.dart';
@@ -22,7 +22,7 @@ class _EditJobPageState extends ConsumerState<EditJobScreen> {
   final _formKey = GlobalKey<FormState>();
 
   String? _name;
-  int? _ratePerHour;
+  double? _ratePerHour;
 
   @override
   void initState() {
@@ -66,13 +66,13 @@ class _EditJobPageState extends ConsumerState<EditJobScreen> {
     final state = ref.watch(editJobScreenControllerProvider);
     return Scaffold(
       appBar: AppBar(
-        title: Text(widget.job == null ? 'New Job' : 'Edit Job'),
+        title: Text(widget.job == null ? 'New job' : 'Edit job'),
         actions: <Widget>[
-          TextButton(
-            onPressed: state.isLoading ? null : _submit,
-            child: const Text(
-              'Save',
-              style: TextStyle(fontSize: 18, color: Colors.white),
+          Padding(
+            padding: const EdgeInsets.only(right: 8),
+            child: FilledButton(
+              onPressed: state.isLoading ? null : _submit,
+              child: const Text('Save'),
             ),
           ),
         ],
@@ -84,7 +84,7 @@ class _EditJobPageState extends ConsumerState<EditJobScreen> {
   Widget _buildContents() {
     return SingleChildScrollView(
       child: ResponsiveCenter(
-        maxContentWidth: Breakpoint.tablet,
+        maxContentWidth: Breakpoint.content,
         padding: const EdgeInsets.all(16.0),
         child: Card(
           child: Padding(
@@ -109,23 +109,40 @@ class _EditJobPageState extends ConsumerState<EditJobScreen> {
   List<Widget> _buildFormChildren() {
     return [
       TextFormField(
-        decoration: const InputDecoration(labelText: 'Job name'),
-        keyboardAppearance: Brightness.light,
+        decoration: const InputDecoration(
+          labelText: 'Job name',
+          hintText: 'e.g. Website redesign',
+          prefixIcon: Icon(Icons.work_outline_rounded),
+        ),
+        textCapitalization: TextCapitalization.sentences,
+        textInputAction: TextInputAction.next,
         initialValue: _name,
         validator: (value) =>
             (value ?? '').isNotEmpty ? null : 'Name can\'t be empty',
         onSaved: (value) => _name = value,
       ),
+      const SizedBox(height: 16),
       TextFormField(
-        decoration: const InputDecoration(labelText: 'Rate per hour'),
-        keyboardAppearance: Brightness.light,
-        initialValue: _ratePerHour != null ? '$_ratePerHour' : null,
+        decoration: const InputDecoration(
+          labelText: 'Rate per hour',
+          hintText: '0 if unpaid',
+          helperText: 'Used to work out pay. Decimals are fine, e.g. 12.50',
+          prefixIcon: Icon(Icons.payments_outlined),
+        ),
+        initialValue: _ratePerHour != null ? _formatRate(_ratePerHour!) : null,
         keyboardType: const TextInputType.numberWithOptions(
           signed: false,
-          decimal: false,
+          decimal: true,
         ),
-        onSaved: (value) => _ratePerHour = int.tryParse(value ?? '') ?? 0,
+        validator: (value) => Job.parseRate(value ?? '') == null
+            ? 'Enter a number from 0 to ${Job.maxRate.toStringAsFixed(0)}'
+            : null,
+        onSaved: (value) => _ratePerHour = Job.parseRate(value ?? '') ?? 0,
       ),
     ];
   }
+
+  /// Shows the stored rate exactly, so saving without an edit never changes it.
+  static String _formatRate(double rate) =>
+      rate == rate.roundToDouble() ? rate.toStringAsFixed(0) : rate.toString();
 }

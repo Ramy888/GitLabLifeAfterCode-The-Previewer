@@ -1,3 +1,6 @@
+import 'package:starter_architecture_flutter_firebase/src/constants/breakpoints.dart';
+import 'package:starter_architecture_flutter_firebase/src/common_widgets/responsive_center.dart';
+import 'package:starter_architecture_flutter_firebase/src/localization/string_hardcoded.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -32,7 +35,8 @@ class JobEntriesPageContents extends StatelessWidget {
         title: Text(job.name),
         actions: <Widget>[
           IconButton(
-            icon: const Icon(Icons.edit, color: Colors.white),
+            tooltip: 'Edit job'.hardcoded,
+            icon: const Icon(Icons.edit_outlined),
             onPressed: () => context.goNamed(
               AppRoute.editJob.name,
               pathParameters: {'id': job.id},
@@ -41,9 +45,10 @@ class JobEntriesPageContents extends StatelessWidget {
           ),
         ],
       ),
-      body: JobEntriesList(job: job),
-      floatingActionButton: FloatingActionButton(
-        child: const Icon(Icons.add, color: Colors.white),
+      body: ResponsiveCenter(maxContentWidth: Breakpoint.content, child: JobEntriesList(job: job)),
+      floatingActionButton: FloatingActionButton.extended(
+        icon: const Icon(Icons.add),
+        label: Text('New entry'.hardcoded),
         onPressed: () => context.goNamed(
           AppRoute.addEntry.name,
           pathParameters: {'id': job.id},

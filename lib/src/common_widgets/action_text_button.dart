@@ -16,7 +16,7 @@ class ActionTextButton extends StatelessWidget {
             style: Theme.of(context)
                 .textTheme
                 .titleLarge!
-                .copyWith(color: Colors.white)),
+                .copyWith(color: Theme.of(context).colorScheme.primary)),
       ),
     );
   }

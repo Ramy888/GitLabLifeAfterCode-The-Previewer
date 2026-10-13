@@ -19,7 +19,7 @@ class EditJobScreenController extends _$EditJobScreenController {
       {JobID? jobId,
       Job? oldJob,
       required String name,
-      required int ratePerHour}) async {
+      required double ratePerHour}) async {
     final currentUser = ref.read(authRepositoryProvider).currentUser;
     if (currentUser == null) {
       throw AssertionError('User can\'t be null');

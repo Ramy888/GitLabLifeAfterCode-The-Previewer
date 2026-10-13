@@ -70,7 +70,7 @@ build:web:
   stage: build
   needs: [flutter:test]
   script:
-    - flutter build web --release
+    - flutter build web --release --dart-define=APP_VERSION=$(grep "^version:" pubspec.yaml | cut -d" " -f2)
     # deploy.sh refuses a build made with the stub Firebase config.
     - if [ -f .firebase-options-stub ]; then touch build/web/.firebase-options-stub; fi
   artifacts:
@@ -85,7 +85,7 @@ build:android:
     - if: $ANDROID_KEYSTORE_BASE64
   script:
     - sh tools/ci/android_signing.sh
-    - flutter build appbundle --release
+    - flutter build appbundle --release --dart-define=APP_VERSION=$(grep "^version:" pubspec.yaml | cut -d" " -f2)
     - echo "AAB_JOB_ID=$CI_JOB_ID" > aab.env
   artifacts:
     paths: [build/app/outputs/bundle/release/app-release.aab]
