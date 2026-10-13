@@ -1,3 +1,4 @@
+import 'package:starter_architecture_flutter_firebase/src/constants/breakpoints.dart';
 import 'dart:async';
 
 import 'package:flutter/material.dart';
@@ -83,7 +84,7 @@ class _EditJobPageState extends ConsumerState<EditJobScreen> {
   Widget _buildContents() {
     return SingleChildScrollView(
       child: ResponsiveCenter(
-        maxContentWidth: 720,
+        maxContentWidth: Breakpoint.content,
         padding: const EdgeInsets.all(16.0),
         child: Card(
           child: Padding(
@@ -141,6 +142,7 @@ class _EditJobPageState extends ConsumerState<EditJobScreen> {
     ];
   }
 
+  /// Shows the stored rate exactly, so saving without an edit never changes it.
   static String _formatRate(double rate) =>
-      rate == rate.roundToDouble() ? rate.toStringAsFixed(0) : rate.toStringAsFixed(2);
+      rate == rate.roundToDouble() ? rate.toStringAsFixed(0) : rate.toString();
 }

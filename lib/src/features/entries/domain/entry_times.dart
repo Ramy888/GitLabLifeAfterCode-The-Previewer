@@ -26,14 +26,14 @@ class EntryTimes {
     return EntryTimes(day: _dateOnly(now), startMinutes: rounded.clamp(0, lastStart), durationMinutes: 60);
   }
 
-  /// An existing entry, kept to the minute until a slider moves. A stored end before the start (from before the
-  /// editor prevented it) becomes the shortest duration.
+  /// An existing entry, kept to the minute until a slider moves, even when it is shorter than a step or starts after
+  /// [lastStart]. Only a stored end at or before the start (from before the editor prevented it) becomes one step.
   factory EntryTimes.fromEntry(DateTime start, DateTime end) {
     final duration = end.difference(start).inMinutes;
     return EntryTimes(
       day: _dateOnly(start),
       startMinutes: start.hour * 60 + start.minute,
-      durationMinutes: duration < step ? step : duration,
+      durationMinutes: duration <= 0 ? step : duration,
     );
   }
 
@@ -42,8 +42,9 @@ class EntryTimes {
   bool get endsNextDay => _dateOnly(end).isAfter(day);
   double get hours => durationMinutes / 60.0;
 
-  /// Top of the start slider: 23:45, or later if an existing entry starts later.
-  int get maxStartMinutes => startMinutes > lastStart ? startMinutes : lastStart;
+  /// Top of the start slider. Always 23:45, so slider steps stay on the 15-minute grid; a later existing start is
+  /// kept as is and the slider shows it at the top until moved.
+  int get maxStartMinutes => lastStart;
 
   /// Top of the duration slider: 12 hours, or the existing duration rounded up to a step.
   int get maxDurationMinutes {
@@ -51,8 +52,8 @@ class EntryTimes {
     return rounded > maxDefaultDuration ? rounded : maxDefaultDuration;
   }
 
-  /// Bottom of the duration slider: one step, or less if an existing entry is shorter.
-  int get minDurationMinutes => durationMinutes < step ? durationMinutes : step;
+  /// Bottom of the duration slider: one step. A shorter existing duration is kept until moved.
+  int get minDurationMinutes => step;
 
   EntryTimes withDay(DateTime newDay) =>
       EntryTimes(day: _dateOnly(newDay), startMinutes: startMinutes, durationMinutes: durationMinutes);

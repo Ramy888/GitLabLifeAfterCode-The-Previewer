@@ -190,7 +190,8 @@ class _SliderCard extends StatelessWidget {
                 Expanded(
                   child: Slider(
                     key: sliderKey,
-                    value: value.toDouble(),
+                    // An existing off-grid time (after 23:45, or under 15 minutes) sits at the end until moved.
+                    value: value.clamp(min, max).toDouble(),
                     min: min.toDouble(),
                     max: max.toDouble(),
                     divisions: (max - min) ~/ EntryTimes.step > 0 ? (max - min) ~/ EntryTimes.step : null,

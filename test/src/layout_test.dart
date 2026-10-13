@@ -30,7 +30,7 @@ Entry entry(String jobId, int hour, int minutes) => Entry(
     end: day.add(Duration(hours: hour, minutes: minutes)), comment: 'Reviewed the sign-up flow with the team');
 
 final Timesheet sheet = EntriesService.timesheet(EntriesService.combine(
-  [entry('j', 9, 450), entry('q', 14, 135), entry('gone', 18, 60)],
+  [entry('j', 9, 450), entry('q', 14, 135), entry('gone', 18, 60), entry('j', 20, 59)],
   [longJob, const Job(id: 'q', name: 'Mobile app QA', ratePerHour: 10)],
 ));
 
@@ -50,6 +50,17 @@ final screens = <String, Widget Function()>{
         child: EntryEditor(
           times: EntryTimes(day: day, startMinutes: 23 * 60 + 45, durationMinutes: 11 * 60 + 45),
           ratePerHour: 1250.75,
+          comment: '',
+          onTimesChanged: (_) {},
+          onCommentChanged: (_) {},
+        ),
+      ),
+  'entry editor, off-grid entry': () => SingleChildScrollView(
+        padding: const EdgeInsets.all(16),
+        child: EntryEditor(
+          times: EntryTimes.fromEntry(day.add(const Duration(hours: 23, minutes: 50)),
+              day.add(const Duration(hours: 23, minutes: 55))),
+          ratePerHour: 129.95,
           comment: '',
           onTimesChanged: (_) {},
           onCommentChanged: (_) {},

@@ -59,6 +59,13 @@ void main() {
       expect(Job.parseRate('abc'), isNull);
       expect(Job.parseRate('-3'), isNull);
       expect(Job.parseRate('100000'), isNull);
+      expect(Job.parseRate('1,000'), 1000.0);
+      expect(Job.parseRate('1,234.50'), 1234.5);
+      expect(Job.parseRate('1,2,3'), isNull);
+    });
+    test('a whole-number rate is stored as an integer, so older app versions can still read it', () {
+      expect(const Job(id: 'a', name: 'A', ratePerHour: 12).toMap()['ratePerHour'], isA<int>());
+      expect(const Job(id: 'a', name: 'A', ratePerHour: 12.5).toMap()['ratePerHour'], 12.5);
     });
   });
 }

@@ -1,3 +1,5 @@
+import 'package:starter_architecture_flutter_firebase/src/common_widgets/delete_swipe_background.dart';
+import 'package:starter_architecture_flutter_firebase/src/constants/breakpoints.dart';
 import 'package:starter_architecture_flutter_firebase/src/localization/string_hardcoded.dart';
 import 'package:starter_architecture_flutter_firebase/src/features/jobs/presentation/jobs_screen/job_card.dart';
 import 'package:starter_architecture_flutter_firebase/src/common_widgets/responsive_center.dart';
@@ -33,7 +35,7 @@ class JobsScreen extends StatelessWidget {
           );
           final jobsQuery = ref.watch(jobsQueryProvider);
           return ResponsiveCenter(
-            maxContentWidth: 720,
+            maxContentWidth: Breakpoint.content,
             child: FirestoreListView<Job>(
               query: jobsQuery,
               padding: const EdgeInsets.fromLTRB(16, 8, 16, 96),
@@ -49,7 +51,7 @@ class JobsScreen extends StatelessWidget {
                   padding: const EdgeInsets.only(bottom: 12),
                   child: Dismissible(
                     key: Key('job-${job.id}'),
-                    background: const _DeleteBackground(),
+                    background: const DeleteSwipeBackground(),
                     direction: DismissDirection.endToStart,
                     confirmDismiss: (_) => confirmJobDelete(context, job),
                     onDismissed: (direction) => ref
@@ -69,24 +71,6 @@ class JobsScreen extends StatelessWidget {
           );
         },
       ),
-    );
-  }
-}
-
-class _DeleteBackground extends StatelessWidget {
-  const _DeleteBackground();
-
-  @override
-  Widget build(BuildContext context) {
-    final scheme = Theme.of(context).colorScheme;
-    return Container(
-      alignment: Alignment.centerRight,
-      padding: const EdgeInsets.symmetric(horizontal: 24),
-      decoration: BoxDecoration(
-        color: scheme.errorContainer,
-        borderRadius: BorderRadius.circular(16),
-      ),
-      child: Icon(Icons.delete_outline, color: scheme.onErrorContainer),
     );
   }
 }

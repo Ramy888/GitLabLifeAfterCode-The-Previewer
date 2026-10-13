@@ -1,5 +1,7 @@
+import 'package:starter_architecture_flutter_firebase/src/constants/breakpoints.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:starter_architecture_flutter_firebase/src/common_widgets/empty_content.dart';
 import 'package:starter_architecture_flutter_firebase/src/common_widgets/responsive_center.dart';
 import 'package:starter_architecture_flutter_firebase/src/constants/strings.dart';
 import 'package:starter_architecture_flutter_firebase/src/features/entries/application/entries_service.dart';
@@ -21,7 +23,10 @@ class EntriesScreen extends ConsumerWidget {
       body: timesheet.when(
         data: (sheet) => TimesheetView(sheet: sheet),
         loading: () => const Center(child: CircularProgressIndicator()),
-        error: (e, _) => Center(child: Text(e.toString())),
+        error: (e, _) => const EmptyContent(
+          title: 'Something went wrong',
+          message: 'Your timesheet can\'t be loaded right now. Check your connection and try again.',
+        ),
       ),
     );
   }
@@ -36,7 +41,7 @@ class TimesheetView extends StatelessWidget {
   Widget build(BuildContext context) {
     if (sheet.days.isEmpty) return const EntriesEmptyState();
     return ResponsiveCenter(
-      maxContentWidth: 720,
+      maxContentWidth: Breakpoint.content,
       child: ListView(
         padding: const EdgeInsets.fromLTRB(16, 8, 16, 24),
         children: [
@@ -107,21 +112,24 @@ class DayCard extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            Row(
+            // Wraps the totals under the date when a phone is too narrow for both on one line.
+            Wrap(
+              alignment: WrapAlignment.spaceBetween,
+              crossAxisAlignment: WrapCrossAlignment.center,
+              spacing: 12,
               children: [
-                Expanded(
-                  child: Text(
-                    '${Format.dayOfWeek(day.date)}, ${Format.date(day.date)}',
-                    style: theme.textTheme.titleMedium,
-                    overflow: TextOverflow.ellipsis,
-                  ),
+                Text('${Format.dayOfWeek(day.date)}, ${Format.date(day.date)}', style: theme.textTheme.titleMedium),
+                Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(Format.hours(day.duration), style: theme.textTheme.titleMedium),
+                    if (day.pay > 0) ...[
+                      const SizedBox(width: 12),
+                      Text(Format.currency(day.pay),
+                          style: theme.textTheme.titleMedium!.copyWith(color: colors.pay)),
+                    ],
+                  ],
                 ),
-                Text(Format.hours(day.duration), style: theme.textTheme.titleMedium),
-                if (day.pay > 0) ...[
-                  const SizedBox(width: 12),
-                  Text(Format.currency(day.pay),
-                      style: theme.textTheme.titleMedium!.copyWith(color: colors.pay)),
-                ],
               ],
             ),
             const Divider(height: 20),
@@ -135,16 +143,16 @@ class DayCard extends StatelessWidget {
                     Expanded(
                       child: Text(job.name, overflow: TextOverflow.ellipsis, style: theme.textTheme.bodyLarge),
                     ),
-                    Text(Format.hours(job.durationInHours), style: theme.textTheme.bodyLarge),
-                    if (job.pay > 0) ...[
-                      const SizedBox(width: 12),
-                      SizedBox(
-                        width: 72,
-                        child: Text(Format.currency(job.pay),
-                            textAlign: TextAlign.right,
-                            style: theme.textTheme.bodyLarge!.copyWith(color: colors.pay)),
-                      ),
-                    ],
+                    // Hours over pay, so a long name and a large amount fit side by side on a phone.
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.end,
+                      children: [
+                        Text(Format.hours(job.durationInHours), style: theme.textTheme.bodyLarge),
+                        if (job.pay > 0)
+                          Text(Format.currency(job.pay),
+                              style: theme.textTheme.bodyMedium!.copyWith(color: colors.pay)),
+                      ],
+                    ),
                   ],
                 ),
               ),

@@ -1,3 +1,4 @@
+import 'package:starter_architecture_flutter_firebase/src/common_widgets/delete_swipe_background.dart';
 import 'package:flutter/material.dart';
 import 'package:starter_architecture_flutter_firebase/src/features/entries/domain/entry.dart';
 import 'package:starter_architecture_flutter_firebase/src/features/entries/domain/entry_times.dart';
@@ -94,16 +95,10 @@ class DismissibleEntryListItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final scheme = Theme.of(context).colorScheme;
     return Padding(
       padding: const EdgeInsets.only(bottom: 12),
       child: Dismissible(
-        background: Container(
-          alignment: Alignment.centerRight,
-          padding: const EdgeInsets.symmetric(horizontal: 24),
-          decoration: BoxDecoration(color: scheme.errorContainer, borderRadius: BorderRadius.circular(16)),
-          child: Icon(Icons.delete_outline, color: scheme.onErrorContainer),
-        ),
+        background: const DeleteSwipeBackground(),
         key: dismissibleKey,
         direction: DismissDirection.endToStart,
         onDismissed: (direction) => onDismissed?.call(),

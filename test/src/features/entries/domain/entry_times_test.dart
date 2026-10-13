@@ -32,6 +32,21 @@ void main() {
     expect(t.end, DateTime(2026, 10, 13, 10, 1));
   });
 
+  test('a short existing entry keeps its duration until the slider moves', () {
+    final t = EntryTimes.fromEntry(DateTime(2026, 10, 13, 9), DateTime(2026, 10, 13, 9, 5));
+    expect(t.durationMinutes, 5);
+    expect(t.end, DateTime(2026, 10, 13, 9, 5));
+    expect(t.nudgeDuration(1).durationMinutes, 15);
+  });
+
+  test('a start after 23:45 is kept exactly; the slider range stays on the grid', () {
+    final t = EntryTimes.fromEntry(DateTime(2026, 10, 13, 23, 50), DateTime(2026, 10, 14, 0, 30));
+    expect(t.startMinutes, 23 * 60 + 50);
+    expect(t.maxStartMinutes, EntryTimes.lastStart);
+    expect(t.maxStartMinutes % EntryTimes.step, 0);
+    expect(t.minDurationMinutes, EntryTimes.step);
+  });
+
   test('a stored end before the start (old data) becomes the 15-minute minimum', () {
     final t = EntryTimes.fromEntry(DateTime(2026, 10, 13, 9), DateTime(2026, 10, 13, 8));
     expect(t.durationMinutes, 15);

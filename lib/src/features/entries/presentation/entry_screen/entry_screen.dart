@@ -1,3 +1,4 @@
+import 'package:starter_architecture_flutter_firebase/src/constants/breakpoints.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -70,7 +71,7 @@ class _EntryPageState extends ConsumerState<EntryScreen> {
       ),
       body: SingleChildScrollView(
         child: ResponsiveCenter(
-          maxContentWidth: 720,
+          maxContentWidth: Breakpoint.content,
           padding: const EdgeInsets.all(Sizes.p16),
           child: EntryEditor(
             times: _times,

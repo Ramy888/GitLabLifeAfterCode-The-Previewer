@@ -1,3 +1,4 @@
+import 'package:starter_architecture_flutter_firebase/src/constants/breakpoints.dart';
 import 'package:starter_architecture_flutter_firebase/src/common_widgets/responsive_center.dart';
 import 'package:starter_architecture_flutter_firebase/src/localization/string_hardcoded.dart';
 import 'package:flutter/material.dart';
@@ -44,7 +45,7 @@ class JobEntriesPageContents extends StatelessWidget {
           ),
         ],
       ),
-      body: ResponsiveCenter(maxContentWidth: 720, child: JobEntriesList(job: job)),
+      body: ResponsiveCenter(maxContentWidth: Breakpoint.content, child: JobEntriesList(job: job)),
       floatingActionButton: FloatingActionButton.extended(
         icon: const Icon(Icons.add),
         label: Text('New entry'.hardcoded),
