@@ -86,10 +86,11 @@ await scrollTo("Readiness", { top: 140 }); await sleep(4000);
 
 // 3. govern: the one human handoff, and the reply that resumes the flow
 cue("govern", "One handoff: what only a human can provide. A reply resumes the flow");
-await scrollTo("Resume: release MR opened", { top: 260 }); await sleep(4000);
+await scrollTo("I need these from you to continue", { top: 200 }); await sleep(3500);
+await scrollTo("resume pass", { top: 160 }); await sleep(3500);
 
 // 4. create: a fix MR the flow opened for a safe finding
-await open(`${P}/-/merge_requests/${RUN.fixMr}/diffs`, "Changes");
+await open(`${P}/-/merge_requests/${RUN.fixMr}`, "Guideline");
 cue("create", "Safe findings become fix merge requests, each citing the guideline it answers");
 await sleep(2000); await hover(900, 420); await sleep(2500); await b.wheel(360); await sleep(3000);
 

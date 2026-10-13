@@ -45,3 +45,15 @@ so the Account tab gets its own screen.
       the reviewer account) proves the Firestore documents are gone.
       Live check done with an anonymous user (2 jobs, 3 entries, then 0 and no Auth user). The email-user
       `requires-recent-login` re-auth path has widget-test coverage only.
+
+## T16 Time Tracker redesign v2.2.0 (FULL lane; spec: tasks/redesign-spec.md)
+Branch `redesign/2.2.0`. Each task lands green (analyze + tests) before the next.
+- [ ] T16.1 Theme + logo + R1 source guard (RED first: app/entry/entries screens use indigo/white literals).
+- [ ] T16.2 Nav shell (bar/rail with logo) + Account (pure `AccountBody`, danger zone, anonymous sign-out warning).
+- [ ] T16.3 Jobs cards + confirm-delete + job form decimal rate with validation (R4, R4b).
+- [ ] T16.4 Entry editor: start/duration math unit-tested first, then sliders with nudges and live summary (R5).
+- [ ] T16.5 Entries tab: explainer, day cards, orphan-entry fix (R6).
+- [ ] T16.6 Sign-in header/side panel (R3) + onboarding with the new logo; web favicon and manifest icons.
+- [ ] T16.7 Five-size layout tests over every plain widget (R8).
+- [ ] T16.8 Headless screenshots of the web build at five sizes, contact sheet checked.
+- [ ] T16.9 MR to main; then version 2.2.0, "Release v2.2.0" run, merge release MR, trigger deploy:cloudrun.
